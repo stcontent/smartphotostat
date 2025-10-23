@@ -1086,9 +1086,30 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     initStepper();
     bootstrap();
+    
+
+   // Fallback toggle for browsers without :has()
+    (function(){
+      const en = document.getElementById('langEN');
+      const ur = document.getElementById('langUR');
+      const enBox = document.querySelector('#tutorialCard .tut-en');
+      const urBox = document.querySelector('#tutorialCard .tut-ur');
+      if (!en || !ur || !enBox || !urBox) return;
+      function syncTut(){
+        // Only apply if :has() isn't working; but it's harmless either way.
+        enBox.style.display = en.checked ? 'block' : 'none';
+        urBox.style.display = ur.checked ? 'block' : 'none';
+      }
+      en.addEventListener('change', syncTut);
+      ur.addEventListener('change', syncTut);
+      // Ensure EN is visible on first open
+      syncTut();
+    })();
+  
   });
 </script>
 </body>
 </html>
+
 
 
