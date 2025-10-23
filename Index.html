@@ -431,11 +431,21 @@
       state.sizes=(d.price && d.price.sizes)||[];
       state.styles=(d.price && d.price.styles)||[];
       state.payments = d.payments||state.payments;
-      if (d.contact){ state.contact = d.contact; }
+      // Merge contact safely so blanks from backend don't wipe defaults
+if (d.contact){
+  state.contact = { ...state.contact, ...d.contact };
+}
 
-      const p = document.getElementById('cPhone'); const e = document.getElementById('cEmail');
-      if (p){ p.textContent = state.contact.phone; p.href = 'tel:'+state.contact.phone; }
-      if (e){ e.textContent = state.contact.email; e.href = 'mailto:'+state.contact.email; }
+const p = document.getElementById('cPhone');
+const e = document.getElementById('cEmail');
+
+// Fallbacks to your defaults if backend is empty
+const phone = state.contact && state.contact.phone ? state.contact.phone : '+923181530761';
+const email = state.contact && state.contact.email ? state.contact.email : 'studyappscontent@gmail.com';
+
+if (p){ p.textContent = phone; p.href = 'tel:'+phone; }
+if (e){ e.textContent = email; e.href = 'mailto:'+email; }
+
 
       fillPaymentModes();
     } catch (err) {
@@ -822,6 +832,7 @@
 </script>
 </body>
 </html>
+
 
 
 
