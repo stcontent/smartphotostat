@@ -76,13 +76,43 @@
     .table{min-width:640px}
     .kpi .box{flex:1 1 100%}
   }
+
+  /* --- Help/Tutorial tabs (pure CSS, no JS) --- */
+  .help-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .help-tabs input{display:none}
+  .help-tabs label{cursor:pointer}
+  .help-chip{padding:8px 12px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#111;white-space:nowrap}
+  .help-tabs input:checked + label.help-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+
+  /* panels */
+  .help-panel{display:none}
+  #tabTut:checked ~ .help-panels #panelTut{display:block}
+  #tabContact:checked ~ .help-panels #panelContact{display:block}
+
+  /* Language toggle (inside Tutorial) */
+  .lang-switch{display:flex;gap:8px;margin:10px 0}
+  .lang-switch input{display:none}
+  .lang-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px}
+  .lang-switch input:checked + label.lang-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+
+  /* Show selected language */
+  .tut-en, .tut-ur{display:none}
+  #langEN:checked ~ .tut-wrap .tut-en{display:block}
+  #langUR:checked ~ .tut-wrap .tut-ur{display:block}
+
+  /* Urdu text direction */
+  .rtl{direction:rtl;text-align:right}
+
+  /* Lists that look nice in both languages */
+  .tut-list{margin:8px 0 0 0;padding-left:18px}
+  .tut-list li{margin:2px 0}
 </style>
 </head>
 <body>
   <header>
     <div class="wrap brand">
       <div class="logo">SP</div>
-      <h1>Smart PhotoCopy —? Online Print & Delivery Contact # 03181530761</h1>
+      <h1>Smart PhotoCopy — Online Print & Delivery Contact # 03181530761</h1>
     </div>
   </header>
 
@@ -273,25 +303,272 @@
       </div>
     </div>
 
-    <!-- Contact -->
+    <!-- Help & Tutorial (replaces the old Contact card; still opened by the "Contact" chip) -->
     <div class="card" id="contactCard" style="display:none">
-      <h2>Contact</h2>
-      <div class="row">
-        <div>
-          <div class="hint">Phone</div>
-          <div style="font-weight:700;font-size:18px">
-            <a id="cPhone" href="tel:+923181530761">+923181530761</a>
+      <h2>Help & Tutorial</h2>
+
+      <!-- Top-level tabs: Tutorial / Contact (pure CSS) -->
+      <div class="help-tabs">
+        <input type="radio" name="helpTab" id="tabTut" checked>
+        <label for="tabTut" class="help-chip">Tutorial</label>
+
+        <input type="radio" name="helpTab" id="tabContact">
+        <label for="tabContact" class="help-chip">Contact</label>
+
+        <!-- Panels container -->
+        <div class="help-panels" style="width:100%">
+
+          <!-- ============ TUTORIAL PANEL ============ -->
+          <div id="panelTut" class="help-panel">
+            <!-- Language toggle -->
+            <div class="lang-switch">
+              <input type="radio" name="tutLang" id="langEN" checked>
+              <label for="langEN" class="lang-chip">English</label>
+
+              <input type="radio" name="tutLang" id="langUR">
+              <label for="langUR" class="lang-chip">اردو</label>
+            </div>
+
+            <div class="tut-wrap">
+              <!-- ========== ENGLISH ========== -->
+              <div class="tut-en">
+                <div class="banner">Smart PhotoCopy — How to Place an Order</div>
+                <p class="muted">This guide explains every step to place a print order. Keep your PDFs and payment details handy.</p>
+
+                <h3>What you need</h3>
+                <ul class="tut-list">
+                  <li>Your PDF files (we currently accept PDF only)</li>
+                  <li>Your name, WhatsApp number, and email</li>
+                  <li>A delivery address (you’ll pick it on a map and also type the details)</li>
+                  <li>Payment details (how you paid and a transaction ID)</li>
+                </ul>
+
+                <h3>Step 1 — Your Details</h3>
+                <ol class="tut-list">
+                  <li>Enter your Full Name.</li>
+                  <li>Enter your WhatsApp Number. Any Pakistan format works: 03xxxxxxxxx, 92xxxxxxxxxx, or +92xxxxxxxxxx (we’ll normalize it).</li>
+                  <li>Enter a valid Email (we’ll send your order copy here).</li>
+                  <li>Click <em>“Continue to Files →”</em>.</li>
+                </ol>
+                <div class="banner">✅ All three fields (Name, WhatsApp, Email) are required to move forward.</div>
+
+                <h3>Step 2 — Upload Your PDF Files</h3>
+                <ol class="tut-list">
+                  <li>Click the file picker and select one or more PDF files.</li>
+                  <li>We’ll show page counts for each file.</li>
+                  <li>Click “Upload” next to each file (or “Upload All”).</li>
+                  <li>If you add the wrong file, use “Remove” (or “Remove All”).</li>
+                  <li>When all files show “Uploaded”, click “Next: Printing →”.</li>
+                </ol>
+                <div class="banner">ℹ️ You must upload the files before placing the order.</div>
+
+                <h3>Step 3 — Choose Printing Options (Per File)</h3>
+                <p>For each uploaded PDF, choose:</p>
+                <ul class="tut-list">
+                  <li>Size (e.g., A4, Legal, A3)</li>
+                  <li>Paper Weight (e.g., 70gsm, 80gsm, etc.)</li>
+                  <li>Style (e.g., Simplex/Single-Sided or Duplex/Back-to-Back)</li>
+                </ul>
+                <p>We’ll automatically calculate:</p>
+                <ul class="tut-list">
+                  <li>Rate per page</li>
+                  <li>Effective pages (duplex halves page count)</li>
+                  <li>Amount for that file</li>
+                </ul>
+                <p>Add any extra notes (e.g., “Print in grayscale”, “Staple top-left”) in the text box.</p>
+                <p><strong>When done, click “Next: Address & Payment →”.</strong></p>
+
+                <h3>Step 4 — Address & Payment</h3>
+                <p><strong>Pick Your Delivery Location</strong></p>
+                <ul class="tut-list">
+                  <li>Search by street/area/city and select a result, or</li>
+                  <li>Click “Use my location”, or</li>
+                  <li>Drop a pin on the map by clicking on your location</li>
+                </ul>
+                <p>Then fill:</p>
+                <ul class="tut-list">
+                  <li>Selected location (auto-filled — you can edit it)</li>
+                  <li>Address details (manual) — <strong>required</strong> (Flat/Street/Area/Landmarks/City)</li>
+                </ul>
+                <div class="banner">🚚 Delivery fare is estimated automatically from our origin to your location.</div>
+
+                <p><strong>Payment</strong></p>
+                <ul class="tut-list">
+                  <li>Choose Payment Mode (e.g., bank, wallet, etc.).</li>
+                  <li>Choose Account (we’ll show accounts for the selected mode).</li>
+                  <li>Enter Transaction ID and How you paid (e.g., “JazzCash app”).</li>
+                </ul>
+                <p>You’ll see a Bill Summary:
+                  Printing total, Delivery fare, Grand total, Pay now (30%), and COD (70%).</p>
+                <p><strong>Click “Next: Review →”.</strong></p>
+
+                <h3>Step 5 — Review & Place Order</h3>
+                <ol class="tut-list">
+                  <li>Check your Order Code, customer details, files & options, delivery, payment, and totals.</li>
+                  <li>If all looks good, click <strong>“Place Order”</strong>.</li>
+                  <li>You’ll see a confirmation message with your Order Code, and you’ll receive a copy by email. Our team will contact you shortly.</li>
+                </ol>
+
+                <h3>Important Notes & Tips</h3>
+                <ul class="tut-list">
+                  <li>File type: PDF only (for perfect layout).</li>
+                  <li>Duplex vs Single-Sided: Duplex reduces effective pages (cost).</li>
+                  <li>Multiple files: Set options per file.</li>
+                  <li>Delivery estimate: Calculated from our origin to your pin; ensure your pin is accurate.</li>
+                  <li>Partial payment: 30% now and 70% Cash on Delivery (COD).</li>
+                  <li>Transaction ID: Enter exact ID for quick verification.</li>
+                  <li>Contact: Phone/WhatsApp +92 318 1530761, Email studyappscontent@gmail.com.</li>
+                  <li>Service area: Rawalpindi/Islamabad & nearby (fare varies by distance).</li>
+                </ul>
+
+                <h3>Troubleshooting</h3>
+                <p><strong>Can’t continue?</strong> Make sure required fields are filled (Name, WhatsApp, Email; Uploaded PDFs; Printing options; Address manual text; Payment mode/account; Transaction ID; “How you paid”).</p>
+                <p><strong>Files not uploading?</strong> Ensure they are PDF files and try again.</p>
+                <p><strong>Location issues?</strong> Use the Search box, drop a pin, or try “Use my location” (allow location access).</p>
+                <p><strong>Didn’t receive email?</strong> Check spam/junk, or contact us and share your Order Code.</p>
+
+                <h3>Privacy & Safety</h3>
+                <ul class="tut-list">
+                  <li>Your files are used only to fulfill your order.</li>
+                  <li>We never share your documents or personal details with third parties.</li>
+                </ul>
+
+                <h3>Need help?</h3>
+                <p>Call/WhatsApp: +92 318 1530761<br/>Email: studyappscontent@gmail.com</p>
+              </div>
+
+              <!-- ========== اردو ========== -->
+              <div class="tut-ur rtl">
+                <div class="banner">اسمارٹ فوٹو کاپی — آرڈر کیسے دیں</div>
+                <p class="muted">یہ رہنمائی آپ کو آرڈر دینے کے تمام مراحل سمجھاتی ہے۔ اپنی پی ڈی ایف فائلیں اور ادائیگی کی تفصیل تیار رکھیں۔</p>
+
+                <h3>آپ کو کن چیزوں کی ضرورت ہے</h3>
+                <ul class="tut-list">
+                  <li>آپ کی پی ڈی ایف فائلیں (فی الحال صرف PDF قبول ہے)</li>
+                  <li>آپ کا نام، واٹس ایپ نمبر، اور ای میل</li>
+                  <li>ڈلیوری ایڈریس (نقشے پر پن لگائیں اور تفصیل بھی لکھیں)</li>
+                  <li>ادائیگی کی تفصیل (کس طرح ادائیگی کی اور ٹرانزیکشن آئی ڈی)</li>
+                </ul>
+
+                <h3>مرحلہ 1 — آپ کی تفصیلات</h3>
+                <ol class="tut-list">
+                  <li>اپنا پورا نام لکھیں۔</li>
+                  <li>اپنا واٹس ایپ نمبر درج کریں۔ پاکستان کی کسی بھی فارمیٹ میں چلے گا: 03xxxxxxxxx، 92xxxxxxxxxx، یا +92xxxxxxxxxx (ہم نارملائز کریں گے)۔</li>
+                  <li>درست ای میل لکھیں (آرڈر کی کاپی اسی ای میل پر آئے گی)۔</li>
+                  <li>“Continue to Files →” پر کلک کریں۔</li>
+                </ol>
+                <div class="banner">✅ اگلے مرحلے پر جانے کے لیے نام، واٹس ایپ، اور ای میل— تینوں لازمی ہیں۔</div>
+
+                <h3>مرحلہ 2 — اپنی پی ڈی ایف فائلیں اپ لوڈ کریں</h3>
+                <ol class="tut-list">
+                  <li>فائل پِکر پر کلک کریں اور ایک یا ایک سے زیادہ پی ڈی ایف فائلیں منتخب کریں۔</li>
+                  <li>ہر فائل کے صفحات کی تعداد دکھائی جائے گی۔</li>
+                  <li>ہر فائل کے سامنے “Upload” پر کلک کریں (یا “Upload All”)۔</li>
+                  <li>اگر غلط فائل شامل ہو گئی ہے تو “Remove” (یا “Remove All”) استعمال کریں۔</li>
+                  <li>جب تمام فائلوں کے سامنے “Uploaded” آ جائے تو “Next: Printing →” پر کلک کریں۔</li>
+                </ol>
+                <div class="banner">ℹ️ آرڈر دینے سے پہلے فائلیں اپ لوڈ کرنا ضروری ہے۔</div>
+
+                <h3>مرحلہ 3 — ہر فائل کے لیے پرنٹنگ آپشنز منتخب کریں</h3>
+                <p>ہر اپ لوڈڈ پی ڈی ایف کے لیے منتخب کریں:</p>
+                <ul class="tut-list">
+                  <li>سائز (مثلاً A4، Legal، A3)</li>
+                  <li>پیپر ویٹ (مثلاً 70gsm، 80gsm وغیرہ)</li>
+                  <li>اسٹائل (سِمپلکس/سنگل سائیڈڈ یا ڈوپلکس/بیک ٹو بیک)</li>
+                </ul>
+                <p>ہم خودکار طور پر حساب لگائیں گے:</p>
+                <ul class="tut-list">
+                  <li>ریٹ فی پیج</li>
+                  <li>موثر صفحات (ڈوپلکس میں صفحات آدھے شمار ہوتے ہیں)</li>
+                  <li>اسی فائل کی رقم</li>
+                </ul>
+                <p>اگر کوئی ہدایات دینی ہوں (جیسے “گری اسکیل میں پرنٹ کریں”، “اوپر بائیں اسٹیپل کریں”) تو نوٹس باکس میں لکھیں۔</p>
+                <p><strong>جب مکمل ہو جائے تو “Next: Address & Payment →” پر کلک کریں۔</strong></p>
+
+                <h3>مرحلہ 4 — پتہ اور ادائیگی</h3>
+                <p><strong>اپنی ڈلیوری لوکیشن منتخب کریں</strong></p>
+                <ul class="tut-list">
+                  <li>گلی/علاقہ/شہر تلاش کر کے رزلٹ منتخب کریں، یا</li>
+                  <li>“Use my location” پر کلک کریں، یا</li>
+                  <li>نقشے پر اپنی جگہ پر کلک کر کے پن ڈراپ کریں</li>
+                </ul>
+                <p>پھر یہ فیلڈز بھر دیں:</p>
+                <ul class="tut-list">
+                  <li>منتخب شدہ لوکیشن (آٹو فل — آپ ایڈٹ کر سکتے ہیں)</li>
+                  <li>ایڈریس کی تفصیل — <strong>لازمی</strong> (فلیٹ/گلی/علاقہ/نشانیاں/شہر)</li>
+                </ul>
+                <div class="banner">🚚 ڈلیوری کرایہ ہمارے مقام سے آپ کی لوکیشن تک فاصلے کے حساب سے خود بخود اندازاً دکھایا جاتا ہے۔</div>
+
+                <p><strong>ادائیگی</strong></p>
+                <ul class="tut-list">
+                  <li>پیمنٹ موڈ منتخب کریں (مثلاً بینک، والیٹ وغیرہ)۔</li>
+                  <li>اکاؤنٹ منتخب کریں (منتخب موڈ کے اکاؤنٹس دکھائے جائیں گے)۔</li>
+                  <li>ٹرانزیکشن آئی ڈی اور “کس طرح ادائیگی کی” (مثلاً “JazzCash app”) درج کریں۔</li>
+                </ul>
+                <p>آپ کو بل سمری نظر آئے گی:
+                  پرنٹنگ ٹوٹل، ڈلیوری کرایہ، گرینڈ ٹوٹل، ابھی ادائیگی (30%) اور کیش آن ڈلیوری (70%)۔</p>
+                <p><strong>“Next: Review →” پر کلک کریں۔</strong></p>
+
+                <h3>مرحلہ 5 — جائزہ لیں اور آرڈر پلیس کریں</h3>
+                <ol class="tut-list">
+                  <li>اپنا آرڈر کوڈ، کسٹمر تفصیلات، فائلیں و آپشنز، ڈلیوری، ادائیگی، اور ٹوٹلز چیک کریں۔</li>
+                  <li>اگر سب درست ہے تو <strong>“Place Order”</strong> پر کلک کریں۔</li>
+                  <li>تصدیقی پیغام کے ساتھ آپ کو آرڈر کوڈ ملے گا اور ایک کاپی ای میل پر بھی موصول ہوگی۔ ہماری ٹیم جلد آپ سے رابطہ کرے گی۔</li>
+                </ol>
+
+                <h3>اہم نوٹس اور ٹپس</h3>
+                <ul class="tut-list">
+                  <li>فائل ٹائپ: صرف PDF (بہتر لے آؤٹ کے لیے)۔</li>
+                  <li>ڈوپلکس بمقابلہ سنگل سائیڈڈ: ڈوپلکس میں مؤثر صفحات کم ہو جاتے ہیں، اس لیے قیمت بھی کم ہوتی ہے۔</li>
+                  <li>متعدد فائلیں: ہر فائل کے لیے الگ آپشنز منتخب کریں (سائز، ویٹ، اسٹائل)۔</li>
+                  <li>ڈلیوری تخمینہ: ہمارے مقام سے آپ کے پن تک — درست کرایہ کے لیے پن درست جگہ لگائیں۔</li>
+                  <li>جزوی ادائیگی: 30% ابھی اور 70% کیش آن ڈلیوری (COD)۔</li>
+                  <li>ٹرانزیکشن آئی ڈی: ایڈوانس بھیجنے کے بعد درست آئی ڈی درج کریں تاکہ جلدی تصدیق ہو سکے۔</li>
+                  <li>رابطہ: فون/واٹس ایپ +92 318 1530761، ای میل studyappscontent@gmail.com</li>
+                  <li>سروس ایریا: راولپنڈی/اسلام آباد اور آس پاس کے علاقوں میں ڈلیوری (فاصلہ کے مطابق کرایہ)۔</li>
+                </ul>
+
+                <h3>ٹربل شوٹنگ</h3>
+                <p><strong>اگلے مرحلے پر نہیں جا پا رہے؟</strong> یقینی بنائیں کہ لازمی فیلڈز بھری ہوئی ہیں (نام، واٹس ایپ، ای میل؛ اپ لوڈڈ پی ڈی ایف؛ پرنٹنگ آپشنز؛ ایڈریس کی تفصیل؛ پیمنٹ موڈ/اکاؤنٹ؛ ٹرانزیکشن آئی ڈی؛ “کس طرح ادائیگی کی”)۔</p>
+                <p><strong>فائلیں اپ لوڈ نہیں ہو رہیں؟</strong> یقینی بنائیں کہ فائلیں PDF ہیں اور دوبارہ کوشش کریں۔</p>
+                <p><strong>لوکیشن کے مسائل؟</strong> سرچ باکس استعمال کریں، نقشے پر پن چھوڑیں، یا “Use my location” آزمائیں (لوکیشن ایکسیس کی اجازت دیں)۔</p>
+                <p><strong>ای میل موصول نہیں ہوئی؟</strong> سپام/جنک فولڈر چیک کریں، یا ہم سے رابطہ کریں اور آرڈر کوڈ شیئر کریں۔</p>
+
+                <h3>پرائیویسی اور حفاظت</h3>
+                <ul class="tut-list">
+                  <li>آپ کی فائلیں صرف آرڈر مکمل کرنے کے لیے استعمال ہوتی ہیں۔</li>
+                  <li>ہم آپ کی دستاویزات یا ذاتی معلومات کسی تیسرے فریق سے شیئر نہیں کرتے۔</li>
+                </ul>
+
+                <h3>مدد درکار ہے؟</h3>
+                <p>کال/واٹس ایپ: +92 318 1530761<br/>ای میل: studyappscontent@gmail.com</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div>
-          <div class="hint">Email</div>
-          <div style="font-weight:700;font-size:18px">
-            <a id="cEmail" href="mailto:studyappscontent@gmail.com">studyappscontent@gmail.com</a>
+
+          <!-- ============ CONTACT PANEL (keeps ids used by your script) ============ -->
+          <div id="panelContact" class="help-panel">
+            <h2>Contact</h2>
+            <div class="row">
+              <div>
+                <div class="hint">Phone</div>
+                <div style="font-weight:700;font-size:18px">
+                  <a id="cPhone" href="tel:+923181530761">+923181530761</a>
+                </div>
+              </div>
+              <div>
+                <div class="hint">Email</div>
+                <div style="font-weight:700;font-size:18px">
+                  <a id="cEmail" href="mailto:studyappscontent@gmail.com">studyappscontent@gmail.com</a>
+                </div>
+              </div>
+            </div>
+            <div class="muted" style="margin-top:10px">
+              We're here to help. Reach out on phone or email anytime.
+            </div>
           </div>
+
         </div>
-      </div>
-      <div class="muted" style="margin-top:10px">
-        We're here to help. Reach out on phone or email anytime.
       </div>
     </div>
   </main>
@@ -822,4 +1099,3 @@
 </script>
 </body>
 </html>
-
