@@ -78,19 +78,24 @@
   }
 
   /* --- Tutorial language toggle (pure CSS) --- */
-  .tut-switch{display:flex;gap:8px;margin:10px 0}
-  .tut-switch input{display:none}
-  .tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
-  .tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
-  /* Show selected language */
-  .tut-en, .tut-ur{display:none}
-  #langEN:checked ~ .tut-wrap .tut-en{display:block}
-  #langUR:checked ~ .tut-wrap .tut-ur{display:block}
-  /* Urdu text direction */
-  .rtl{direction:rtl;text-align:right}
-  /* Lists */
-  .tut-list{margin:8px 0 0 0;padding-left:18px}
-  .tut-list li{margin:2px 0}
+  /* --- Tutorial language toggle (fixed) --- */
+.tut-switch{display:flex;gap:8px;margin:10px 0}
+.tut-switch input{display:none}
+.tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
+.tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+
+.tut-en, .tut-ur{display:none}
+
+/* Use :has() so inputs can live inside .tut-switch and still toggle .tut-wrap */
+#tutorialCard:has(#langEN:checked) .tut-en{display:block}
+#tutorialCard:has(#langUR:checked) .tut-ur{display:block}
+
+/* Urdu text direction */
+.rtl{direction:rtl;text-align:right}
+/* Lists */
+.tut-list{margin:8px 0 0 0;padding-left:18px}
+.tut-list li{margin:2px 0}
+
 </style>
 </head>
 <body>
@@ -594,13 +599,18 @@
   }
 
   function lockUI(){
-    state.locked = true;
-    document.querySelectorAll('button, input, select, textarea').forEach(el=>{
-      if (el.closest('#contactCard')) return;
-      el.disabled = true; el.setAttribute('tabindex','-1');
-    });
-    document.querySelectorAll('.chip').forEach(el=>{ if (el.id !== 'sContact') el.classList.add('disabled'); });
-  }
+  state.locked = true;
+  document.querySelectorAll('button, input, select, textarea').forEach(el=>{
+    if (el.closest('#contactCard')) return;
+    el.disabled = true; el.setAttribute('tabindex','-1');
+  });
+  document.querySelectorAll('.chip').forEach(el=>{
+    if (el.id === 'sContact') return;
+    if (el.dataset.nolock === 'true') return; // keep Tutorial chip active after lock
+    el.classList.add('disabled');
+  });
+}
+
 
   function showOnly(idToShow){
     const ids = ['step1','step2','step3','step4','step5','contactCard','tutorialCard']; // added tutorialCard
@@ -653,6 +663,8 @@
       document.getElementById('s'+i).classList.toggle('active', i===n);
     }
     document.getElementById('sContact').classList.remove('active');
+document.getElementById('sTutorial')?.classList.remove('active'); // <-- add this
+
 
     state.currentStep = n;
     if(n===3){ renderPrintingUI(); recalcAll(); }
@@ -1078,3 +1090,4 @@
 </script>
 </body>
 </html>
+
