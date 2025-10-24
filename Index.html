@@ -114,7 +114,15 @@
 .tut-ur h3{ font-weight:700 }
 .tut-ur .tut-list{ padding-right:18px; padding-left:0 } /* better bullets in RTL */
 
-
+/* --- Mobile polish for Step 3 printing table (APPENDED) --- */
+@media (max-width: 600px){
+  #step3 .table td select{ min-width:180px } /* make dropdowns usable on phones */
+  #step3 .table-wrap{ -webkit-overflow-scrolling:touch }
+  #step3 .table-wrap::after{
+    content:'Swipe left/right to see all printing options';
+    display:block; text-align:center; font-size:12px; color:#6b7280; margin-top:6px;
+  }
+}
 </style>
 </head>
 <body>
@@ -592,7 +600,7 @@
     priceRows: [], weights: [], sizes: [], styles: [],
     payments: { modes: [], accountsByMode:{} },
     files: [],
-    totals: { printing:0, fare:0, grand:0, now:0, cod:0 },
+    totals: { printing:0, fare:0, grand:0, now:0, cod:0, minAdj:0 }, // added minAdj
     delivery: {
       origin:{lat:33.5987, lng:73.0519, label:'Liaquat Bagh, Murree Road Rawalpindi'},
       lat:null, lng:null, addrText:'', addrManual:'', distanceKm:0, fare:0
@@ -601,7 +609,8 @@
     currency: 'PKR',
     timezone: 'Asia/Karachi',
     currentStep: 1,
-    locked: false
+    locked: false,
+    minOrderAck: false // ask user to acknowledge once before moving past step 4
   };
 
   function showMsg(text, type='info'){
@@ -673,6 +682,24 @@
         const mode = document.getElementById('payMode').value;
         const acc  = document.getElementById('payAccount').value;
         if (!mode || !acc){ showMsg('Select payment mode and account.', 'error'); return; }
+      }
+    }
+
+    // Ensure printing options are loaded before entering Step 3 (mobile safety)
+    if (n === 3 && (!state.sizes.length || !state.weights.length || !state.styles.length)){
+      showMsg('Printing options are loading. Please wait a moment and try again.');
+      return;
+    }
+
+    // Enforce 500 minimum: when moving past Step 4, show adjustment & block once
+    if (!back && n > 4){
+      const base = (state.totals.printing||0) + (state.totals.fare||0);
+      if (base < 500 && !state.minOrderAck){
+        updateBillCards(); // ensure banner/values visible
+        const adj = 500 - base;
+        showMsg(`Minimum order is PKR 500. We added ${formatPKR(adj)} to reach the minimum. Please review the Bill Summary, then tap Next again.`, 'error');
+        state.minOrderAck = true; // allow next attempt
+        return;
       }
     }
 
@@ -983,14 +1010,45 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
   }
 
   function updateBillCards(){
-    const print = state.totals.printing||0; const fare = state.totals.fare||0;
-    const grand = print + fare; const now = Math.round(grand*0.30); const cod = grand - now;
-    state.totals.grand=grand; state.totals.now=now; state.totals.cod=cod;
+    const print = state.totals.printing||0;
+    const fare  = state.totals.fare||0;
+    const base  = print + fare;
+    const minAdj = base < 500 ? (500 - base) : 0;
+
+    state.totals.minAdj = minAdj;
+
+    const grand = base + minAdj;
+    const now = Math.round(grand * 0.30);
+    const cod = grand - now;
+
+    state.totals.grand = grand;
+    state.totals.now   = now;
+    state.totals.cod   = cod;
+
+    // reset ack if no longer needed
+    if (minAdj === 0) state.minOrderAck = false;
+
     document.getElementById('b_printTotal').textContent = formatPKR(print);
-    document.getElementById('b_fare').textContent = formatPKR(fare);
-    document.getElementById('b_grand').textContent = formatPKR(grand);
-    document.getElementById('b_now').textContent = formatPKR(now);
-    document.getElementById('b_cod').textContent = formatPKR(cod);
+    document.getElementById('b_fare').textContent       = formatPKR(fare);
+    document.getElementById('b_grand').textContent      = formatPKR(grand);
+    document.getElementById('b_now').textContent        = formatPKR(now);
+    document.getElementById('b_cod').textContent        = formatPKR(cod);
+
+    // Show/hide a note inside Step 4 explaining the adjustment
+    let note = document.getElementById('minOrderNote');
+    if (!note){
+      note = document.createElement('div');
+      note.id = 'minOrderNote';
+      note.className = 'banner';
+      const kpi = document.querySelector('#step4 .kpi');
+      if (kpi) kpi.insertAdjacentElement('afterend', note);
+    }
+    if (minAdj > 0){
+      note.textContent = `Minimum order is PKR 500. An extra ${formatPKR(minAdj)} has been added to reach the minimum.`;
+      note.style.display = 'block';
+    } else {
+      note.style.display = 'none';
+    }
   }
 
   function formatPKR(n){ try { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(n||0);}catch(e){ return 'PKR '+(n||0);} }
@@ -1006,6 +1064,8 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
       const opt = f.opts||{};
       return `${escapeHtml(f.name)} — ${f.pages}p — ${escapeHtml(opt.size)}, ${escapeHtml(opt.weight)}, ${escapeHtml(opt.style)}${part}`;
     }).join('<br/>');
+
+    const adjLine = state.totals.minAdj > 0 ? `<br/>Min-order adj: ${formatPKR(state.totals.minAdj)}` : '';
 
     const html = `
       <div class="card" style="margin-bottom:12px">
@@ -1026,7 +1086,7 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
           <h3 style="margin-top:12px">Payment</h3>
           <div>Mode: ${escapeHtml(document.getElementById('payMode').value)}<br/>Account: ${escapeHtml(document.getElementById('payAccount').value)}<br/>Txn: ${escapeHtml(document.getElementById('txId').value)}<br/>How: ${escapeHtml(document.getElementById('paidHow').value)}</div>
           <h3 style="margin-top:12px">Totals</h3>
-          <div>Printing: ${formatPKR(state.totals.printing)}<br/>Delivery: ${formatPKR(state.totals.fare)}<br/><b>Grand: ${formatPKR(state.totals.grand)}</b><br/>Pay now: ${formatPKR(state.totals.now)} | COD: ${formatPKR(state.totals.cod)}</div>
+          <div>Printing: ${formatPKR(state.totals.printing)}<br/>Delivery: ${formatPKR(state.totals.fare)}${adjLine}<br/><b>Grand: ${formatPKR(state.totals.grand)}</b><br/>Pay now: ${formatPKR(state.totals.now)} | COD: ${formatPKR(state.totals.cod)}</div>
         </div>
       </div>`;
     document.getElementById('review').innerHTML = html;
@@ -1069,7 +1129,14 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
         fare: state.delivery.fare
       },
       payments: { mode, account: acc, transactionId: txId, paidHow },
-      totals: { printingTotal: state.totals.printing, fare: state.totals.fare, grandTotal: state.totals.grand, advanceNow: state.totals.now, codDue: state.totals.cod },
+      totals: {
+        printingTotal: state.totals.printing,
+        fare: state.totals.fare,
+        minAdjustment: state.totals.minAdj,   // added
+        grandTotal: state.totals.grand,
+        advanceNow: state.totals.now,
+        codDue: state.totals.cod
+      },
       notes: { global: document.getElementById('extraNoteAll').value },
       meta: { orderCode: state.orderCode }
     };
@@ -1129,7 +1196,3 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
 </script>
 </body>
 </html>
-
-
-
-
