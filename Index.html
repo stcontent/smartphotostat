@@ -45,7 +45,7 @@
   .hint{color:#6b7280;font-size:12px}
 
   .table-wrap{width:100%;overflow:auto;border-radius:12px}
-  .table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:720px}
+  .table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:820px}
   .table th{font-size:12px;color:#6b7280;text-align:left}
   .table td{background:#fafafa;border:1px solid #eee;padding:10px;border-radius:10px;vertical-align:middle}
 
@@ -74,55 +74,40 @@
     .map{height:220px}
     .progress{min-width:0}
     .actions-stack{display:grid;grid-template-columns:1fr;gap:8px}
-    .table{min-width:640px}
+    .table{min-width:720px}
     .kpi .box{flex:1 1 100%}
   }
 
-  /* --- Tutorial language toggle (pure CSS) --- */
-  /* --- Tutorial language toggle (fixed) --- */
-.tut-switch{display:flex;gap:8px;margin:10px 0}
-.tut-switch input{display:none}
-.tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
-.tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+  /* Tutorial language toggle */
+  .tut-switch{display:flex;gap:8px;margin:10px 0}
+  .tut-switch input{display:none}
+  .tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
+  .tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
 
-.tut-en, .tut-ur{display:none}
+  .tut-en, .tut-ur{display:none}
+  #tutorialCard:has(#langEN:checked) .tut-en{display:block}
+  #tutorialCard:has(#langUR:checked) .tut-ur{display:block}
 
-/* Use :has() so inputs can live inside .tut-switch and still toggle .tut-wrap */
-#tutorialCard:has(#langEN:checked) .tut-en{display:block}
-#tutorialCard:has(#langUR:checked) .tut-ur{display:block}
+  .rtl{direction:rtl;text-align:right}
+  .tut-list{margin:8px 0 0 0;padding-left:18px}
+  .tut-list li{margin:2px 0}
 
-/* Urdu text direction */
-.rtl{direction:rtl;text-align:right}
-/* Lists */
-.tut-list{margin:8px 0 0 0;padding-left:18px}
-.tut-list li{margin:2px 0}
-   @font-face{
-      font-family: "Jameel Noori Nastaleeq";
-      src: url("/fonts/JameelNooriNastaleeq.woff2") format("woff2");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
-  /* Urdu (Nastaliq) typography */
-.tut-ur{
-  font-family: "Jameel Noori Nastaleeq","Noori Nastaliq","Noto Nastaliq Urdu","Nafees Nastaleeq", serif;
-  font-size: 18px;
-  line-height: 2;             /* Nastaliq needs generous line-height */
-  letter-spacing: 0;
-  word-spacing: .02em;
-}
-.tut-ur h3{ font-weight:700 }
-.tut-ur .tut-list{ padding-right:18px; padding-left:0 } /* better bullets in RTL */
-
-/* --- Mobile polish for Step 3 printing table (APPENDED) --- */
-@media (max-width: 600px){
-  #step3 .table td select{ min-width:180px } /* make dropdowns usable on phones */
-  #step3 .table-wrap{ -webkit-overflow-scrolling:touch }
-  #step3 .table-wrap::after{
-    content:'Swipe left/right to see all printing options';
-    display:block; text-align:center; font-size:12px; color:#6b7280; margin-top:6px;
+  @font-face{
+    font-family: "Jameel Noori Nastaleeq";
+    src: url("/fonts/JameelNooriNastaleeq.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
   }
-}
+  .tut-ur{
+    font-family: "Jameel Noori Nastaleeq","Noori Nastaliq","Noto Nastaliq Urdu","Nafees Nastaleeq", serif;
+    font-size: 18px;
+    line-height: 2;
+    letter-spacing: 0;
+    word-spacing: .02em;
+  }
+  .tut-ur h3{ font-weight:700 }
+  .tut-ur .tut-list{ padding-right:18px; padding-left:0 }
 </style>
 </head>
 <body>
@@ -143,7 +128,6 @@
         <span class="chip" id="s3">3. Printing</span>
         <span class="chip" id="s4">4. Address & Payment</span>
         <span class="chip" id="s5">5. Review & Place Order</span>
-        <!-- Separate Tutorial tab -->
         <span class="chip" id="sTutorial" data-nolock="true" title="How to order"
           onclick="
             showOnly('tutorialCard');
@@ -223,6 +207,7 @@
               <th>Size</th>
               <th>Weight</th>
               <th>Style</th>
+              <th>Copies</th><!-- NEW -->
               <th>Rate</th>
               <th>Eff. Pages</th>
               <th>Amount</th>
@@ -246,7 +231,7 @@
             <textarea id="extraNoteAll" class="note-textarea" placeholder="Any special instructions?"></textarea>
           </div>
         </div>
-        <div class="muted" style="margin-top:6px">No total pages shown — each file shows its own effective pages.</div>
+        <div class="muted" style="margin-top:6px">No total pages shown — each file shows its own effective pages. Amount includes copies.</div>
       </div>
 
       <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
@@ -328,7 +313,7 @@
       </div>
     </div>
 
-    <!-- TUTORIAL (separate tab/card) -->
+    <!-- TUTORIAL -->
     <div class="card" id="tutorialCard" style="display:none">
       <h2>Tutorial — How to Place an Order</h2>
 
@@ -378,14 +363,14 @@
             <li>Size (e.g., A4, Legal, A3)</li>
             <li>Paper Weight (e.g., 70gsm, 80gsm, etc.)</li>
             <li>Style (e.g., Simplex/Single-Sided or Duplex/Back-to-Back)</li>
+            <li>Copies (how many copies to print)</li>
           </ul>
           <p>We’ll automatically calculate:</p>
           <ul class="tut-list">
             <li>Rate per page</li>
             <li>Effective pages (duplex halves page count)</li>
-            <li>Amount for that file</li>
+            <li>Amount for that file (includes copies)</li>
           </ul>
-          <p>Add any extra notes (e.g., “Print in grayscale”, “Staple top-left”) in the text box.</p>
           <p><strong>When done, click “Next: Address & Payment →”.</strong></p>
 
           <h3>Step 4 — Address & Payment</h3>
@@ -484,14 +469,14 @@
             <li>سائز (مثلاً A4، Legal، A3)</li>
             <li>پیپر ویٹ (مثلاً 70gsm، 80gsm وغیرہ)</li>
             <li>اسٹائل (سِمپلکس/سنگل سائیڈڈ یا ڈوپلکس/بیک ٹو بیک)</li>
+            <li>کاپیز (کتنی کاپیاں پرنٹ کرنی ہیں)</li>
           </ul>
           <p>ہم خودکار طور پر حساب لگائیں گے:</p>
           <ul class="tut-list">
             <li>ریٹ فی پیج</li>
             <li>موثر صفحات (ڈوپلکس میں صفحات آدھے شمار ہوتے ہیں)</li>
-            <li>اسی فائل کی رقم</li>
+            <li>اسی فائل کی رقم (کاپیز سمیت)</li>
           </ul>
-          <p>اگر کوئی ہدایات دینی ہوں (جیسے “گری اسکیل میں پرنٹ کریں”، “اوپر بائیں اسٹیپل کریں”) تو نوٹس باکس میں لکھیں۔</p>
           <p><strong>جب مکمل ہو جائے تو “Next: Address & Payment →” پر کلک کریں۔</strong></p>
 
           <h3>مرحلہ 4 — پتہ اور ادائیگی</h3>
@@ -578,9 +563,10 @@
   </main>
 
 <script>
-  // ======= CONFIG: Paste your Web App URL here =======
+  // ======= CONFIG =======
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzbpyCxRS1JCEuEWQGuX1b9Rnmg92tdiMyvAb0M4cYeSepASpLvmHy-f2UG5R5RrhK-DA/exec';
-  // ================================================
+  const MIN_ORDER_AMOUNT = 500; // PKR (printing total)
+  // ======================
 
   // Simple JSON POST without preflight (use Content-Type text/plain)
   async function api(action, payload){
@@ -600,7 +586,7 @@
     priceRows: [], weights: [], sizes: [], styles: [],
     payments: { modes: [], accountsByMode:{} },
     files: [],
-    totals: { printing:0, fare:0, grand:0, now:0, cod:0, minAdj:0 }, // added minAdj
+    totals: { printing:0, fare:0, grand:0, now:0, cod:0 },
     delivery: {
       origin:{lat:33.5987, lng:73.0519, label:'Liaquat Bagh, Murree Road Rawalpindi'},
       lat:null, lng:null, addrText:'', addrManual:'', distanceKm:0, fare:0
@@ -609,8 +595,7 @@
     currency: 'PKR',
     timezone: 'Asia/Karachi',
     currentStep: 1,
-    locked: false,
-    minOrderAck: false // ask user to acknowledge once before moving past step 4
+    locked: false
   };
 
   function showMsg(text, type='info'){
@@ -627,21 +612,20 @@
   }
 
   function lockUI(){
-  state.locked = true;
-  document.querySelectorAll('button, input, select, textarea').forEach(el=>{
-    if (el.closest('#contactCard')) return;
-    el.disabled = true; el.setAttribute('tabindex','-1');
-  });
-  document.querySelectorAll('.chip').forEach(el=>{
-    if (el.id === 'sContact') return;
-    if (el.dataset.nolock === 'true') return; // keep Tutorial chip active after lock
-    el.classList.add('disabled');
-  });
-}
-
+    state.locked = true;
+    document.querySelectorAll('button, input, select, textarea').forEach(el=>{
+      if (el.closest('#contactCard')) return;
+      el.disabled = true; el.setAttribute('tabindex','-1');
+    });
+    document.querySelectorAll('.chip').forEach(el=>{
+      if (el.id === 'sContact') return;
+      if (el.dataset.nolock === 'true') return;
+      el.classList.add('disabled');
+    });
+  }
 
   function showOnly(idToShow){
-    const ids = ['step1','step2','step3','step4','step5','contactCard','tutorialCard']; // added tutorialCard
+    const ids = ['step1','step2','step3','step4','step5','contactCard','tutorialCard'];
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = (id===idToShow)?'block':'none'; });
   }
 
@@ -685,32 +669,13 @@
       }
     }
 
-    // Ensure printing options are loaded before entering Step 3 (mobile safety)
-    if (n === 3 && (!state.sizes.length || !state.weights.length || !state.styles.length)){
-      showMsg('Printing options are loading. Please wait a moment and try again.');
-      return;
-    }
-
-    // Enforce 500 minimum: when moving past Step 4, show adjustment & block once
-    if (!back && n > 4){
-      const base = (state.totals.printing||0) + (state.totals.fare||0);
-      if (base < 500 && !state.minOrderAck){
-        updateBillCards(); // ensure banner/values visible
-        const adj = 500 - base;
-        showMsg(`Minimum order is PKR 500. We added ${formatPKR(adj)} to reach the minimum. Please review the Bill Summary, then tap Next again.`, 'error');
-        state.minOrderAck = true; // allow next attempt
-        return;
-      }
-    }
-
     showOnly('step'+n);
     for (let i=1;i<=5;i++){
       document.getElementById('step'+i).style.display = (i===n)?'block':'none';
       document.getElementById('s'+i).classList.toggle('active', i===n);
     }
     document.getElementById('sContact').classList.remove('active');
-document.getElementById('sTutorial')?.classList.remove('active'); // <-- add this
-
+    document.getElementById('sTutorial')?.classList.remove('active');
 
     state.currentStep = n;
     if(n===3){ renderPrintingUI(); recalcAll(); }
@@ -738,12 +703,8 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
       state.styles=(d.price && d.price.styles)||[];
       state.payments = d.payments||state.payments;
 
-      // SAFE merge so blanks from backend don't wipe defaults
-      if (d.contact){
-        state.contact = { ...state.contact, ...d.contact };
-      }
+      if (d.contact){ state.contact = { ...state.contact, ...d.contact }; }
 
-      // Fallbacks if backend sent blanks/missing
       const p = document.getElementById('cPhone');
       const e = document.getElementById('cEmail');
       const phone = state.contact && state.contact.phone ? state.contact.phone : '+923181530761';
@@ -780,7 +741,7 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
   async function addFile(file){
     const id = uid();
     const pages = await countPdfPages(file).catch(()=>0);
-    const rec = { id, file, name:file.name, pages, uploaded:false, driveFileId:null, driveUrl:null, progress:0, opts:{size:'',weight:'',style:''} };
+    const rec = { id, file, name:file.name, pages, uploaded:false, driveFileId:null, driveUrl:null, progress:0, opts:{size:'',weight:'',style:'',copies:1} };
     state.files.push(rec);
     renderFileRow(rec);
   }
@@ -879,8 +840,12 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
       const opts = ['<option value="">Select…</option>'].concat(options.map(v=>`<option ${v===value?'selected':''} value="${escapeHtml(v)}">${escapeHtml(v)}</option>`));
       return `<select id="${id}">${opts.join('')}</select>`;
     };
+    const copiesInput = (id, value=1) => `<input type="number" id="${id}" min="1" step="1" value="${Number(value)||1}" style="max-width:110px" />`;
 
     for (const f of state.files){
+      if (!f.opts) f.opts = {size:'',weight:'',style:'',copies:1};
+      if (typeof f.opts.copies === 'undefined' || !Number(f.opts.copies)) f.opts.copies = 1;
+
       const tr = document.createElement('tr'); tr.id = 'p_'+f.id;
       tr.innerHTML = `
         <td>${escapeHtml(f.name)}</td>
@@ -888,6 +853,7 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
         <td>${sel('sz_'+f.id, state.sizes, f.opts.size)}</td>
         <td>${sel('wt_'+f.id, state.weights, f.opts.weight)}</td>
         <td>${sel('st_'+f.id, state.styles, f.opts.style)}</td>
+        <td>${copiesInput('cp_'+f.id, f.opts.copies)}</td>
         <td id="rate_${f.id}" class="muted">—</td>
         <td id="eff_${f.id}" class="muted">—</td>
         <td id="amt_${f.id}" style="font-weight:700">—</td>
@@ -897,16 +863,20 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
       const szEl = tr.querySelector('#sz_'+f.id);
       const wtEl = tr.querySelector('#wt_'+f.id);
       const stEl = tr.querySelector('#st_'+f.id);
+      const cpEl = tr.querySelector('#cp_'+f.id);
 
       const assign = ()=>{
         f.opts.size = szEl.value;
         f.opts.weight = wtEl.value;
         f.opts.style = stEl.value;
+        const c = Math.max(1, parseInt(cpEl.value||'1',10) || 1);
+        f.opts.copies = c;
+        cpEl.value = c; // normalize UI
         recalcOne(f);
         recalcAll();
       };
 
-      [szEl, wtEl, stEl].forEach(el=>{
+      [szEl, wtEl, stEl, cpEl].forEach(el=>{
         el.addEventListener('change', assign);
         el.addEventListener('input', assign);
       });
@@ -915,20 +885,37 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
     }
   }
 
+  function ensureAmountVisible(rowId){
+    // On small screens, auto-scroll horizontally so the Amount cell is visible
+    if (!window.matchMedia('(max-width: 600px)').matches) return;
+    const wrap = document.querySelector('#step3 .table-wrap');
+    const amt = document.getElementById('amt_'+rowId);
+    if (!wrap || !amt) return;
+    const a = amt.getBoundingClientRect();
+    const w = wrap.getBoundingClientRect();
+    if (a.right > w.right){
+      wrap.scrollLeft += (a.right - w.right) + 24;
+    } else if (a.left < w.left){
+      wrap.scrollLeft -= (w.left - a.left) + 24;
+    }
+  }
+
   function recalcOne(f){
     const rate = findPrice(f.opts.weight, f.opts.size, f.opts.style);
     const pages = Number(f.pages)||0;
+    const copies = Math.max(1, parseInt(f.opts?.copies||'1',10) || 1);
     if (!isFinite(rate) || !f.opts.weight || !f.opts.size || !f.opts.style){
       f.calc = null;
       setCell(f.id,'rate','—'); setCell(f.id,'eff','—'); setCell(f.id,'amt','—', true);
       return;
     }
     const eff = isDuplex(f.opts.style) ? Math.ceil(pages/2) : pages;
-    const sub = Math.round(eff * rate);
-    f.calc = { rate, effPages: eff, subtotal: sub };
+    const sub = Math.round(eff * rate * copies);
+    f.calc = { rate, effPages: eff, copies, subtotal: sub };
     setCell(f.id,'rate', formatPKR(rate));
     setCell(f.id,'eff', eff);
     setCell(f.id,'amt', formatPKR(sub), true);
+    ensureAmountVisible(f.id); // <- make sure user sees the updated amount on mobile
   }
 
   function recalcAll(){
@@ -1010,45 +997,14 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
   }
 
   function updateBillCards(){
-    const print = state.totals.printing||0;
-    const fare  = state.totals.fare||0;
-    const base  = print + fare;
-    const minAdj = base < 500 ? (500 - base) : 0;
-
-    state.totals.minAdj = minAdj;
-
-    const grand = base + minAdj;
-    const now = Math.round(grand * 0.30);
-    const cod = grand - now;
-
-    state.totals.grand = grand;
-    state.totals.now   = now;
-    state.totals.cod   = cod;
-
-    // reset ack if no longer needed
-    if (minAdj === 0) state.minOrderAck = false;
-
+    const print = state.totals.printing||0; const fare = state.totals.fare||0;
+    const grand = print + fare; const now = Math.round(grand*0.30); const cod = grand - now;
+    state.totals.grand=grand; state.totals.now=now; state.totals.cod=cod;
     document.getElementById('b_printTotal').textContent = formatPKR(print);
-    document.getElementById('b_fare').textContent       = formatPKR(fare);
-    document.getElementById('b_grand').textContent      = formatPKR(grand);
-    document.getElementById('b_now').textContent        = formatPKR(now);
-    document.getElementById('b_cod').textContent        = formatPKR(cod);
-
-    // Show/hide a note inside Step 4 explaining the adjustment
-    let note = document.getElementById('minOrderNote');
-    if (!note){
-      note = document.createElement('div');
-      note.id = 'minOrderNote';
-      note.className = 'banner';
-      const kpi = document.querySelector('#step4 .kpi');
-      if (kpi) kpi.insertAdjacentElement('afterend', note);
-    }
-    if (minAdj > 0){
-      note.textContent = `Minimum order is PKR 500. An extra ${formatPKR(minAdj)} has been added to reach the minimum.`;
-      note.style.display = 'block';
-    } else {
-      note.style.display = 'none';
-    }
+    document.getElementById('b_fare').textContent = formatPKR(fare);
+    document.getElementById('b_grand').textContent = formatPKR(grand);
+    document.getElementById('b_now').textContent = formatPKR(now);
+    document.getElementById('b_cod').textContent = formatPKR(cod);
   }
 
   function formatPKR(n){ try { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(n||0);}catch(e){ return 'PKR '+(n||0);} }
@@ -1062,10 +1018,9 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
     const filesList = state.files.map(f=>{
       const part = f.calc ? ` — ${formatPKR(f.calc.subtotal)}` : '';
       const opt = f.opts||{};
-      return `${escapeHtml(f.name)} — ${f.pages}p — ${escapeHtml(opt.size)}, ${escapeHtml(opt.weight)}, ${escapeHtml(opt.style)}${part}`;
+      const copies = Math.max(1, parseInt(opt.copies||'1',10) || 1);
+      return `${copies}× — ${escapeHtml(f.name)} — ${f.pages}p — ${escapeHtml(opt.size)}, ${escapeHtml(opt.weight)}, ${escapeHtml(opt.style)}${part}`;
     }).join('<br/>');
-
-    const adjLine = state.totals.minAdj > 0 ? `<br/>Min-order adj: ${formatPKR(state.totals.minAdj)}` : '';
 
     const html = `
       <div class="card" style="margin-bottom:12px">
@@ -1086,7 +1041,7 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
           <h3 style="margin-top:12px">Payment</h3>
           <div>Mode: ${escapeHtml(document.getElementById('payMode').value)}<br/>Account: ${escapeHtml(document.getElementById('payAccount').value)}<br/>Txn: ${escapeHtml(document.getElementById('txId').value)}<br/>How: ${escapeHtml(document.getElementById('paidHow').value)}</div>
           <h3 style="margin-top:12px">Totals</h3>
-          <div>Printing: ${formatPKR(state.totals.printing)}<br/>Delivery: ${formatPKR(state.totals.fare)}${adjLine}<br/><b>Grand: ${formatPKR(state.totals.grand)}</b><br/>Pay now: ${formatPKR(state.totals.now)} | COD: ${formatPKR(state.totals.cod)}</div>
+          <div>Printing: ${formatPKR(state.totals.printing)}<br/>Delivery: ${formatPKR(state.totals.fare)}<br/><b>Grand: ${formatPKR(state.totals.grand)}</b><br/>Pay now: ${formatPKR(state.totals.now)} | COD: ${formatPKR(state.totals.cod)}</div>
         </div>
       </div>`;
     document.getElementById('review').innerHTML = html;
@@ -1100,6 +1055,12 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
     const email = document.getElementById('email').value.trim();
     if (!name || !whatsapp || !/^\S+@\S+\.\S+$/.test(email)) { showMsg('Please complete your details.', 'error'); return; }
     if (!state.files.length || state.files.some(f=>!f.uploaded)) { showMsg('Please upload all selected PDFs before placing the order.', 'error'); return; }
+
+    // Enforce minimum printing total
+    if ((state.totals.printing||0) < MIN_ORDER_AMOUNT){
+      showMsg(`Sorry! Your order can't be processed because the minimum amount required is PKR ${MIN_ORDER_AMOUNT}. Please increase files or copies and try again.`, 'error');
+      return;
+    }
 
     const mode = document.getElementById('payMode').value;
     const acc = document.getElementById('payAccount').value;
@@ -1129,14 +1090,7 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
         fare: state.delivery.fare
       },
       payments: { mode, account: acc, transactionId: txId, paidHow },
-      totals: {
-        printingTotal: state.totals.printing,
-        fare: state.totals.fare,
-        minAdjustment: state.totals.minAdj,   // added
-        grandTotal: state.totals.grand,
-        advanceNow: state.totals.now,
-        codDue: state.totals.cod
-      },
+      totals: { printingTotal: state.totals.printing, fare: state.totals.fare, grandTotal: state.totals.grand, advanceNow: state.totals.now, codDue: state.totals.cod },
       notes: { global: document.getElementById('extraNoteAll').value },
       meta: { orderCode: state.orderCode }
     };
@@ -1166,15 +1120,12 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
   document.getElementById('addrText').addEventListener('change', ()=>{ state.delivery.addrText = document.getElementById('addrText').value; });
   document.getElementById('addrManual').addEventListener('change', ()=>{ state.delivery.addrManual = document.getElementById('addrManual').value; });
 
-  function formatPKR(n){ try { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(n||0);}catch(e){ return 'PKR '+(n||0);} }
-
   window.addEventListener('DOMContentLoaded', ()=>{
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     initStepper();
     bootstrap();
-    
 
-   // Fallback toggle for browsers without :has()
+    // Fallback toggle for browsers without :has()
     (function(){
       const en = document.getElementById('langEN');
       const ur = document.getElementById('langUR');
@@ -1182,16 +1133,13 @@ document.getElementById('sTutorial')?.classList.remove('active'); // <-- add thi
       const urBox = document.querySelector('#tutorialCard .tut-ur');
       if (!en || !ur || !enBox || !urBox) return;
       function syncTut(){
-        // Only apply if :has() isn't working; but it's harmless either way.
         enBox.style.display = en.checked ? 'block' : 'none';
         urBox.style.display = ur.checked ? 'block' : 'none';
       }
       en.addEventListener('change', syncTut);
       ur.addEventListener('change', syncTut);
-      // Ensure EN is visible on first open
       syncTut();
     })();
-  
   });
 </script>
 </body>
