@@ -11,108 +11,157 @@
 
 <!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-  :root{--brand:#111;--accent:#0ea5e9;--ok:#16a34a;--warn:#eab308;--err:#dc2626;--muted:#6b7280}
+  /* ===== THEME ===== */
+  :root{
+    --bg: #f6f8fb;
+    --card:#ffffff;
+    --line:#e9eef5;
+    --text:#0f172a;
+    --muted:#64748b;
+    --brand:#111827;
+    --accent:#2563eb;        /* royal blue */
+    --accent-2:#22c55e;      /* green ok */
+    --warn:#f59e0b;
+    --err:#ef4444;
+    --ring: 0 0 0 4px rgba(37,99,235,.15);
+    --shadow: 0 10px 30px rgba(2,6,23,.06);
+    --radius: 16px;
+  }
+
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:#f7f7fb;color:#111;-webkit-font-smoothing:antialiased}
-  header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;z-index:10}
-  .wrap{max-width:1100px;margin:0 auto;padding:16px}
-  .brand{display:flex;align-items:center;gap:10px;min-height:56px}
-  .logo{width:40px;height:40px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
-  h1{font-size:18px;margin:0}
+  body{
+    margin:0;
+    font-family:'Plus Jakarta Sans', Inter, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1000px 600px at -10% -10%, #dbeafe 0, rgba(219,234,254,0) 60%),
+      radial-gradient(900px 500px at 110% -10%, #dcfce7 0, rgba(220,252,231,0) 60%),
+      var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
 
-  .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px;margin-top:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .row-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  /* ===== HEADER ===== */
+  header{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg,#ffffff 0,#ffffffcc 100%);
+    backdrop-filter:saturate(1.2) blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .brand{
+    display:flex;align-items:center;gap:12px;min-height:64px
+  }
+  .logo{
+    width:44px;height:44px;border-radius:12px;
+    background:conic-gradient(from 220deg, var(--accent), #60a5fa 40%, #93c5fd);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;letter-spacing:.5px;
+    box-shadow:var(--shadow)
+  }
+  h1{font-size:18px;margin:0;color:var(--brand)}
+  .sub{font-size:12px;color:var(--muted)}
+
+  /* ===== LAYOUT ===== */
+  main.wrap{padding-top:12px;padding-bottom:40px}
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:18px; margin-top:14px;
+    box-shadow:var(--shadow)
+  }
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .row-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
   .row-single{display:grid;grid-template-columns:1fr;gap:12px}
 
-  label{font-size:12px;color:#374151}
-  input[type=text],input[type=email],input[type=number],select,textarea{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;outline:none;min-height:44px}
-  textarea{min-height:96px}
-  .note-textarea{min-height:120px;resize:vertical}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;min-height:44px}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-  .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .chip{padding:8px 12px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#111;cursor:pointer;white-space:nowrap}
-  .chip.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+  /* Inputs */
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type=text],input[type=email],input[type=number],select,textarea{
+    width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px;
+    min-height:44px; outline:none; background:#fff; color:var(--text);
+    transition:box-shadow .15s ease, border-color .15s ease, transform .05s ease;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--accent); box-shadow:var(--ring)}
+  textarea{min-height:110px; resize:vertical}
+  .note-textarea{min-height:130px}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:#fff;
+    cursor:pointer; min-height:44px; font-weight:600; transition:transform .05s ease, box-shadow .15s ease;
+  }
+  .btn:hover{box-shadow:0 6px 16px rgba(2,6,23,.06)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  .btn.ok{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  .btn.warn{background:var(--warn); border-color:var(--warn); color:#111}
+  .btn:disabled{opacity:.55; cursor:not-allowed; filter:saturate(.5)}
+
+  /* Stepper */
+  .stepper{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{
+    padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--text);cursor:pointer;white-space:nowrap;
+    font-weight:600; font-size:13px; transition:box-shadow .15s ease, transform .05s ease, border-color .15s ease;
+  }
+  .chip:hover{box-shadow:0 4px 12px rgba(2,6,23,.06)}
+  .chip.active{border-color:var(--accent); box-shadow:var(--ring)}
   .chip.disabled{pointer-events:none;opacity:.55}
-  .hint{color:#6b7280;font-size:12px}
-/* Copies box width (desktop + mobile cards) */
-#step3 input[type="number"][id^="cp_"],
-#step3 input[type="number"][id^="mcp_"]{
-  width: 140px;      /* visible width */
-  min-width: 140px;  /* prevent shrinking */
-}
 
-/* If your table has Copies as the 6th column, keep that column roomy */
-#step3 .table th:nth-child(6),
-#step3 .table td:nth-child(6){
-  min-width: 160px;
-  white-space: nowrap;
-}
+  .hint{color:var(--muted);font-size:12px}
 
-/* (optional) give the whole table a bit more breathing room */
-#step3 .table{ min-width: 960px; }
+  /* KPIs */
+  .kpi{display:flex;gap:16px;flex-wrap:wrap}
+  .kpi .box{flex:1 1 220px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
 
-  .table-wrap{width:100%;overflow:auto;border-radius:12px}
-  .table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:960px}
-  .table th{font-size:12px;color:#6b7280;text-align:left;white-space:nowrap}
-  .table td{background:#fafafa;border:1px solid #eee;padding:10px;border-radius:10px;vertical-align:middle}
-  .table select{min-width:140px}
-
-  .progress{height:8px;background:#eee;border-radius:999px;overflow:hidden;min-width:120px}
-  .progress > i{display:block;height:100%;background:var(--accent);width:0}
-  .kpi{display:flex;gap:20px;flex-wrap:wrap}
-  .kpi .box{flex:1 1 220px;border:1px solid #eee;border-radius:12px;padding:12px;background:#fff}
-  .map{height:300px;border-radius:12px;border:1px solid #eee}
-  .banner{padding:12px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd;color:#075985;margin:10px 0}
-  .error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
-  .muted{color:#6b7280}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
-
-  .stepper{display:flex;gap:8px;flex-wrap:wrap}
-
-  /* Mobile / small screens */
-  @media (max-width: 900px){ .row,.row-3,.row-4{grid-template-columns:1fr} }
-  @media (max-width: 720px){
-    .wrap{padding:12px}
-    h1{font-size:16px}
-    .stepper{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-    .stepper::-webkit-scrollbar{height:6px}
-    .stepper::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:999px}
+  /* Tables */
+  .table-wrap{width:100%;overflow:auto;border-radius:14px;border:1px solid var(--line);background:#fff}
+  .table{width:100%;border-collapse:separate;border-spacing:0 10px;min-width:960px;padding:8px}
+  .table th{font-size:12px;color:var(--muted);text-align:left;white-space:nowrap;padding:0 10px}
+  .table td{
+    background:#f9fbff;border:1px solid var(--line);padding:10px;border-radius:12px;vertical-align:middle
   }
-  @media (max-width: 600px){
-    .card{padding:14px;border-radius:14px}
-    .btn{width:100%}
-    .map{height:220px}
-    .progress{min-width:0}
-    .actions-stack{display:grid;grid-template-columns:1fr;gap:8px}
-    .kpi .box{flex:1 1 100%}
-    .table-wrap{display:none}          /* Hide desktop table */
-    .mobile-list{display:block}        /* Show mobile cards */
-  }
+  .table select{min-width:150px}
 
-  /* Mobile printing cards */
+  /* Desktop widen copies column & inputs (Step 3) */
+  #step3 input[type="number"][id^="cp_"],
+  #step3 input[type="number"][id^="mcp_"]{ width:150px; min-width:150px }
+  #step3 .table th:nth-child(6), #step3 .table td:nth-child(6){ min-width:170px; white-space:nowrap }
+  #step3 .table{ min-width: 1000px }
+
+  /* Progress bar */
+  .progress{height:10px;background:#eef2ff;border-radius:999px;overflow:hidden;min-width:120px;border:1px solid var(--line)}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0}
+
+  /* Map */
+  .map{height:320px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+
+  /* Banners */
+  .banner{padding:12px;border-radius:12px;background:#eef6ff;border:1px solid #c7dcff;color:#0b3b91;margin:10px 0}
+  .error{background:#fff1f2;border-color:#fecdd3;color:#be123c}
+
+  .muted{color:var(--muted)}
+  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* Mobile Cards (Step 3) */
   .mobile-list{display:none}
-  .m-file{border:1px solid #eee;background:#fafafa;border-radius:12px;padding:12px;margin-bottom:10px}
+  .m-file{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow)}
   .m-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .m-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .m-row > div, .m-row3 > div{min-width:0}
-  .m-title{font-weight:600;margin-bottom:6px;word-break:break-word}
-  .m-line{display:flex;gap:6px;align-items:center;font-size:13px;color:#374151;margin-top:8px}
-  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#fff;border:1px solid #e5e7eb}
+  .m-title{font-weight:700;margin-bottom:8px;word-break:break-word}
+  .m-line{display:flex;gap:8px;align-items:center;font-size:13px;color:#334155;margin-top:10px;flex-wrap:wrap}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#f8fafc;border:1px solid var(--line)}
 
   /* Tutorial language toggle */
   .tut-switch{display:flex;gap:8px;margin:10px 0}
   .tut-switch input{display:none}
-  .tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
-  .tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+  .tut-chip{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
+  .tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:var(--ring)}
 
   .tut-en, .tut-ur{display:none}
   #tutorialCard:has(#langEN:checked) .tut-en{display:block}
@@ -122,56 +171,80 @@
   .tut-list{margin:8px 0 0 0;padding-left:18px}
   .tut-list li{margin:2px 0}
 
+  /* Nastaliq font for Urdu */
   @font-face{
-    font-family: "Jameel Noori Nastaleeq";
-    src: url("/fonts/JameelNooriNastaleeq.woff2") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+    font-family:"Jameel Noori Nastaleeq";
+    src:url("/fonts/JameelNooriNastaleeq.woff2") format("woff2");
+    font-weight:400;font-style:normal;font-display:swap
   }
   .tut-ur{
-    font-family: "Jameel Noori Nastaleeq","Noori Nastaliq","Noto Nastaliq Urdu","Nafees Nastaleeq", serif;
-    font-size: 18px;
-    line-height: 2;
-    letter-spacing: 0;
-    word-spacing: .02em;
+    font-family:"Jameel Noori Nastaleeq","Noto Nastaliq Urdu","Nafees Nastaleeq", serif;
+    font-size:18px; line-height:2; letter-spacing:0; word-spacing:.02em
   }
   .tut-ur h3{ font-weight:700 }
   .tut-ur .tut-list{ padding-right:18px; padding-left:0 }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 980px){
+    .row,.row-3,.row-4{grid-template-columns:1fr}
+  }
+  @media (max-width: 720px){
+    .wrap{padding:14px}
+    h1{font-size:16px}
+    .stepper{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+    .stepper::-webkit-scrollbar{height:6px}
+    .stepper::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:999px}
+  }
+  @media (max-width: 600px){
+    .card{padding:16px;border-radius:14px}
+    .btn{width:100%}
+    .map{height:240px}
+    .kpi .box{flex:1 1 100%}
+    .table-wrap{display:none}   /* hide desktop table on small screens */
+    .mobile-list{display:block} /* show friendly mobile cards */
+    .actions-stack{display:grid;grid-template-columns:1fr;gap:10px}
+  }
 </style>
 </head>
 <body>
+  <!-- ===== HEADER ===== -->
   <header>
     <div class="wrap brand">
       <div class="logo">SP</div>
-      <h1>Smart PhotoCopy — Online Print & Delivery Contact # 03181530761</h1>
+      <div>
+        <h1>Smart PhotoCopy — Online Print & Delivery</h1>
+        <div class="sub">Call / WhatsApp: <strong>0318-1530761</strong></div>
+      </div>
     </div>
   </header>
 
+  <!-- ===== MAIN ===== -->
   <main class="wrap">
     <div id="msg" class="banner" style="display:none"></div>
 
+    <!-- Stepper -->
     <div class="card">
-      <div class="stepper" style="gap:8px">
+      <div class="stepper">
         <span class="chip" id="s1">1. Your Details</span>
         <span class="chip" id="s2">2. Files</span>
         <span class="chip" id="s3">3. Printing</span>
         <span class="chip" id="s4">4. Address & Payment</span>
         <span class="chip" id="s5">5. Review & Place Order</span>
-        <span class="chip" id="sTutorial" data-nolock="true" title="How to order"
+        <span class="chip" id="sTutorial" data-nolock="true"
+          title="How to order"
           onclick="
             showOnly('tutorialCard');
             document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
             this.classList.add('active');
           "
         >Tutorial</span>
-        <span class="chip" id="sContact" data-nolock="true" title="Get in touch anytime">Contact</span>
+        <span class="chip" id="sContact" data-nolock="true" title="Get in touch">Contact</span>
       </div>
     </div>
 
     <!-- Step 1 -->
     <div class="card" id="step1">
-      <h2>Step 1 — Your Details</h2>
+      <h2 style="margin-top:0">Step 1 — Your Details</h2>
       <div class="row">
         <div>
           <label>Full Name</label>
@@ -180,16 +253,16 @@
         </div>
         <div>
           <label>WhatsApp Number</label>
-          <input id="whatsapp" type="text" placeholder="e.g. 0332XXXXXXX or +92XXXXXXXXXX" />
-          <div class="hint">Pakistan format accepted: 03xx…, 92…, or +92… (will be normalized)</div>
+          <input id="whatsapp" type="text" placeholder="03xx-xxxxxxx or +92xxxxxxxxxx" />
+          <div class="hint">Pakistan format accepted — we’ll normalize it</div>
         </div>
       </div>
-      <div class="row">
+      <div class="row" style="margin-top:6px">
         <div>
           <label>Email</label>
           <input id="email" type="email" placeholder="you@example.com" />
         </div>
-        <div style="display:flex;align-items:flex-end;gap:8px" class="actions-stack">
+        <div class="actions-stack" style="display:flex;align-items:flex-end;gap:10px">
           <button class="btn primary" onclick="goStep(2)">Continue to Files →</button>
         </div>
       </div>
@@ -197,19 +270,20 @@
 
     <!-- Step 2 -->
     <div class="card" id="step2" style="display:none">
-      <h2>Step 2 — Upload PDF Files</h2>
+      <h2 style="margin-top:0">Step 2 — Upload PDF Files</h2>
       <div class="row">
         <div>
           <input id="pdfInput" type="file" multiple accept="application/pdf" />
-          <div class="hint">Select one or more PDF files. We will show page counts.</div>
+          <div class="hint">Select one or more PDF files. We’ll show page counts.</div>
         </div>
-        <div style="display:flex;align-items:flex-end;gap:8px" class="actions-stack">
+        <div class="actions-stack" style="display:flex;align-items:flex-end;gap:10px">
           <button class="btn" id="btnUploadAll" onclick="uploadAll()" disabled>Upload All</button>
           <button class="btn warn" id="btnRemoveAll" onclick="removeAll()" disabled>Remove All</button>
           <button class="btn primary" onclick="goStep(3)">Next: Printing →</button>
         </div>
       </div>
-      <div class="table-wrap">
+
+      <div class="table-wrap" style="margin-top:12px">
         <table class="table" id="filesTable">
           <thead>
             <tr>
@@ -227,14 +301,14 @@
 
     <!-- Step 3 -->
     <div class="card" id="step3" style="display:none">
-      <h2>Step 3 — Printing (Separately per PDF)</h2>
+      <h2 style="margin-top:0">Step 3 — Printing (Separately per PDF)</h2>
 
       <!-- Desktop table -->
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
-              <th style="min-width:220px">File</th>
+              <th style="min-width:240px">File</th>
               <th>Pages</th>
               <th>Size</th>
               <th>Weight</th>
@@ -250,26 +324,26 @@
       </div>
 
       <!-- Mobile cards -->
-      <div id="printList" class="mobile-list"></div>
+      <div id="printList" class="mobile-list" style="margin-top:10px"></div>
 
-      <div class="card" style="margin-top:12px">
-        <h3>Printing Total</h3>
+      <div class="card" style="margin-top:14px">
+        <h3 style="margin-top:0">Printing Total</h3>
         <div class="kpi">
           <div class="box">
             <div class="hint">Total amount</div>
-            <div id="k_printTotal" style="font-weight:700;font-size:18px">PKR 0</div>
+            <div id="k_printTotal" style="font-weight:800;font-size:20px">PKR 0</div>
           </div>
         </div>
-        <div class="row" style="margin-top:10px">
+        <div class="row" style="margin-top:12px">
           <div>
             <label>Extra note</label>
             <textarea id="extraNoteAll" class="note-textarea" placeholder="Any special instructions?"></textarea>
           </div>
         </div>
-        <div class="muted" style="margin-top:6px">Each file’s amount includes copies. Duplex halves effective pages.</div>
+        <div class="muted" style="margin-top:8px">Each file’s amount includes copies. Duplex halves effective pages.</div>
       </div>
 
-      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+      <div class="actions-stack" style="display:flex;gap:10px;justify-content:space-between;margin-top:12px">
         <button class="btn" onclick="goStep(2)">← Back</button>
         <button class="btn primary" onclick="goStep(4)">Next: Address & Payment →</button>
       </div>
@@ -277,17 +351,17 @@
 
     <!-- Step 4 -->
     <div class="card" id="step4" style="display:none">
-      <h2>Step 4 — Address & Payment</h2>
+      <h2 style="margin-top:0">Step 4 — Address & Payment</h2>
       <div class="row">
         <div>
           <label>Search location</label>
-          <div style="display:flex;gap:8px" class="actions-stack">
+          <div class="actions-stack" style="display:flex;gap:10px">
             <input id="searchAddr" type="text" placeholder="Street / Area / City" />
             <button class="btn" onclick="searchLocation()">Search</button>
             <button class="btn" onclick="useMyLocation()">Use my location</button>
           </div>
-          <div id="map" class="map" style="margin-top:8px"></div>
-          <div class="row" style="margin-top:8px">
+          <div id="map" class="map" style="margin-top:10px"></div>
+          <div class="row" style="margin-top:12px">
             <div>
               <label>Selected location (editable)</label>
               <input id="addrText" type="text" placeholder="Auto-filled from map search or pin" />
@@ -299,6 +373,7 @@
             </div>
           </div>
         </div>
+
         <div>
           <div class="row">
             <div>
@@ -320,17 +395,19 @@
               <input id="paidHow" type="text" placeholder="e.g. JazzCash app" />
             </div>
           </div>
-          <div class="card" style="margin-top:12px">
-            <h3>Bill Summary</h3>
+
+          <div class="card" style="margin-top:14px">
+            <h3 style="margin-top:0">Bill Summary</h3>
             <div class="kpi">
-              <div class="box"><div class="hint">Printing total</div><div id="b_printTotal" style="font-weight:700;font-size:18px">PKR 0</div></div>
-              <div class="box"><div class="hint">Delivery fare</div><div id="b_fare" style="font-weight:700;font-size:18px">PKR 0</div></div>
-              <div class="box"><div class="hint">Grand total</div><div id="b_grand" style="font-weight:700;font-size:18px">PKR 0</div></div>
-              <div class="box"><div class="hint">Pay now (30%)</div><div id="b_now" style="font-weight:700;font-size:18px">PKR 0</div></div>
-              <div class="box"><div class="hint">COD (70%)</div><div id="b_cod" style="font-weight:700;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Printing total</div><div id="b_printTotal" style="font-weight:800;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Delivery fare</div><div id="b_fare" style="font-weight:800;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Grand total</div><div id="b_grand" style="font-weight:800;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Pay now (30%)</div><div id="b_now" style="font-weight:800;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">COD (70%)</div><div id="b_cod" style="font-weight:800;font-size:18px">PKR 0</div></div>
             </div>
           </div>
-          <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+
+          <div class="actions-stack" style="display:flex;gap:10px;justify-content:space-between;margin-top:12px">
             <button class="btn" onclick="goStep(3)">← Back</button>
             <button class="btn primary" onclick="goStep(5)">Next: Review →</button>
           </div>
@@ -340,9 +417,9 @@
 
     <!-- Step 5 -->
     <div class="card" id="step5" style="display:none">
-      <h2>Step 5 — Review & Place Order</h2>
+      <h2 style="margin-top:0">Step 5 — Review & Place Order</h2>
       <div id="review"></div>
-      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+      <div class="actions-stack" style="display:flex;gap:10px;justify-content:space-between;margin-top:12px">
         <button class="btn" id="btnBackReview" onclick="goStep(4)">← Back</button>
         <button class="btn ok" onclick="placeOrder()" id="btnPlace">Place Order</button>
       </div>
@@ -350,8 +427,7 @@
 
     <!-- TUTORIAL -->
     <div class="card" id="tutorialCard" style="display:none">
-      <h2>Tutorial — How to Place an Order</h2>
-
+      <h2 style="margin-top:0">Tutorial — How to Place an Order</h2>
       <div class="tut-switch">
         <input type="radio" name="tutLang" id="langEN" checked>
         <label for="langEN" class="tut-chip">English</label>
@@ -387,7 +463,7 @@
 
     <!-- CONTACT -->
     <div class="card" id="contactCard" style="display:none">
-      <h2>Contact</h2>
+      <h2 style="margin-top:0">Contact</h2>
       <div class="row">
         <div>
           <div class="hint">Phone</div>
@@ -407,6 +483,7 @@
       </div>
     </div>
   </main>
+
 
 <script>
   // ======= CONFIG =======
@@ -1119,3 +1196,4 @@
 </script>
 </body>
 </html>
+
