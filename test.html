@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart PhotoCopy</title>
+
+<!-- Leaflet Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{--brand:#111;--accent:#0ea5e9;--ok:#16a34a;--warn:#eab308;--err:#dc2626;--muted:#6b7280}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:#f7f7fb;color:#111;-webkit-font-smoothing:antialiased}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;z-index:10}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .brand{display:flex;align-items:center;gap:10px;min-height:56px}
+  .logo{width:40px;height:40px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+  h1{font-size:18px;margin:0}
+
+  .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px;margin-top:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .row-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .row-single{display:grid;grid-template-columns:1fr;gap:12px}
+
+  label{font-size:12px;color:#374151}
+  input[type=text],input[type=email],input[type=number],select,textarea{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;outline:none;min-height:44px}
+  textarea{min-height:96px}
+  .note-textarea{min-height:120px;resize:vertical}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;min-height:44px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+  .btn.warn{background:var(--warn);border-color:var(--warn);color:#000}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .chip{padding:8px 12px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#111;cursor:pointer;white-space:nowrap}
+  .chip.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+  .chip.disabled{pointer-events:none;opacity:.55}
+  .hint{color:#6b7280;font-size:12px}
+
+  .table-wrap{width:100%;overflow:auto;border-radius:12px}
+  .table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:720px}
+  .table th{font-size:12px;color:#6b7280;text-align:left}
+  .table td{background:#fafafa;border:1px solid #eee;padding:10px;border-radius:10px;vertical-align:middle}
+
+  .progress{height:8px;background:#eee;border-radius:999px;overflow:hidden;min-width:120px}
+  .progress > i{display:block;height:100%;background:var(--accent);width:0}
+  .kpi{display:flex;gap:20px;flex-wrap:wrap}
+  .kpi .box{flex:1 1 220px;border:1px solid #eee;border-radius:12px;padding:12px;background:#fff}
+  .map{height:300px;border-radius:12px;border:1px solid #eee}
+  .banner{padding:12px;border-radius:12px;background:#f0f9ff;border:1px solid #bae6fd;color:#075985;margin:10px 0}
+  .error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+  .muted{color:#6b7280}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;}
+
+  .stepper{display:flex;gap:8px;flex-wrap:wrap}
+  @media (max-width: 720px){
+    .wrap{padding:12px}
+    h1{font-size:16px}
+    .stepper{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+    .stepper::-webkit-scrollbar{height:6px}
+    .stepper::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:999px}
+  }
+  @media (max-width: 900px){ .row,.row-3,.row-4{grid-template-columns:1fr} }
+  @media (max-width: 600px){
+    .card{padding:14px;border-radius:14px}
+    .btn{width:100%}
+    .map{height:220px}
+    .progress{min-width:0}
+    .actions-stack{display:grid;grid-template-columns:1fr;gap:8px}
+    .table{min-width:640px}
+    .kpi .box{flex:1 1 100%}
+  }
+
+  /* --- Tutorial language toggle (pure CSS) --- */
+  /* --- Tutorial language toggle (fixed) --- */
+.tut-switch{display:flex;gap:8px;margin:10px 0}
+.tut-switch input{display:none}
+.tut-chip{padding:6px 10px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;cursor:pointer}
+.tut-switch input:checked + label.tut-chip{border-color:var(--accent);box-shadow:0 0 0 2px rgba(14,165,233,.15)}
+
+.tut-en, .tut-ur{display:none}
+
+/* Use :has() so inputs can live inside .tut-switch and still toggle .tut-wrap */
+#tutorialCard:has(#langEN:checked) .tut-en{display:block}
+#tutorialCard:has(#langUR:checked) .tut-ur{display:block}
+
+/* Urdu text direction */
+.rtl{direction:rtl;text-align:right}
+/* Lists */
+.tut-list{margin:8px 0 0 0;padding-left:18px}
+.tut-list li{margin:2px 0}
+   @font-face{
+      font-family: "Jameel Noori Nastaleeq";
+      src: url("/fonts/JameelNooriNastaleeq.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+  /* Urdu (Nastaliq) typography */
+.tut-ur{
+  font-family: "Jameel Noori Nastaleeq","Noori Nastaliq","Noto Nastaliq Urdu","Nafees Nastaleeq", serif;
+  font-size: 18px;
+  line-height: 2;             /* Nastaliq needs generous line-height */
+  letter-spacing: 0;
+  word-spacing: .02em;
+}
+.tut-ur h3{ font-weight:700 }
+.tut-ur .tut-list{ padding-right:18px; padding-left:0 } /* better bullets in RTL */
+
+/* --- Mobile polish for Step 3 printing table (APPENDED) --- */
+@media (max-width: 600px){
+  #step3 .table td select{ min-width:180px } /* make dropdowns usable on phones */
+  #step3 .table-wrap{ -webkit-overflow-scrolling:touch }
+  #step3 .table-wrap::after{
+    content:'Swipe left/right to see all printing options';
+    display:block; text-align:center; font-size:12px; color:#6b7280; margin-top:6px;
+  }
+}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand">
+      <div class="logo">SP</div>
+      <h1>Smart PhotoCopy — Online Print & Delivery Contact # 03181530761</h1>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="msg" class="banner" style="display:none"></div>
+
+    <div class="card">
+      <div class="stepper" style="gap:8px">
+        <span class="chip" id="s1">1. Your Details</span>
+        <span class="chip" id="s2">2. Files</span>
+        <span class="chip" id="s3">3. Printing</span>
+        <span class="chip" id="s4">4. Address & Payment</span>
+        <span class="chip" id="s5">5. Review & Place Order</span>
+        <!-- Separate Tutorial tab -->
+        <span class="chip" id="sTutorial" data-nolock="true" title="How to order"
+          onclick="
+            showOnly('tutorialCard');
+            document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+            this.classList.add('active');
+          "
+        >Tutorial</span>
+        <span class="chip" id="sContact" data-nolock="true" title="Get in touch anytime">Contact</span>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="card" id="step1">
+      <h2>Step 1 — Your Details</h2>
+      <div class="row">
+        <div>
+          <label>Full Name</label>
+          <input id="name" type="text" placeholder="e.g. Order Name" />
+          <div class="hint">Required</div>
+        </div>
+        <div>
+          <label>WhatsApp Number</label>
+          <input id="whatsapp" type="text" placeholder="e.g. 0332XXXXXXX or +92XXXXXXXXXX" />
+          <div class="hint">Pakistan format accepted: 03xx…, 92…, or +92… (will be normalized)</div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Email</label>
+          <input id="email" type="email" placeholder="you@example.com" />
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px" class="actions-stack">
+          <button class="btn primary" onclick="goStep(2)">Continue to Files →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="card" id="step2" style="display:none">
+      <h2>Step 2 — Upload PDF Files</h2>
+      <div class="row">
+        <div>
+          <input id="pdfInput" type="file" multiple accept="application/pdf" />
+          <div class="hint">Select one or more PDF files. We will show page counts.</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px" class="actions-stack">
+          <button class="btn" id="btnUploadAll" onclick="uploadAll()" disabled>Upload All</button>
+          <button class="btn warn" id="btnRemoveAll" onclick="removeAll()" disabled>Remove All</button>
+          <button class="btn primary" onclick="goStep(3)">Next: Printing →</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="filesTable">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Pages</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="filesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card" id="step3" style="display:none">
+      <h2>Step 3 — Printing (Separately per PDF)</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="min-width:220px">File</th>
+              <th>Pages</th>
+              <th>Size</th>
+              <th>Weight</th>
+              <th>Style</th>
+              <th>Rate</th>
+              <th>Eff. Pages</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="printBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Printing Total</h3>
+        <div class="kpi">
+          <div class="box">
+            <div class="hint">Total amount</div>
+            <div id="k_printTotal" style="font-weight:700;font-size:18px">PKR 0</div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label>Extra note</label>
+            <textarea id="extraNoteAll" class="note-textarea" placeholder="Any special instructions?"></textarea>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px">No total pages shown — each file shows its own effective pages.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+        <button class="btn" onclick="goStep(2)">← Back</button>
+        <button class="btn primary" onclick="goStep(4)">Next: Address & Payment →</button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="card" id="step4" style="display:none">
+      <h2>Step 4 — Address & Payment</h2>
+      <div class="row">
+        <div>
+          <label>Search location</label>
+          <div style="display:flex;gap:8px" class="actions-stack">
+            <input id="searchAddr" type="text" placeholder="Street / Area / City" />
+            <button class="btn" onclick="searchLocation()">Search</button>
+            <button class="btn" onclick="useMyLocation()">Use my location</button>
+          </div>
+          <div id="map" class="map" style="margin-top:8px"></div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Selected location (editable)</label>
+              <input id="addrText" type="text" placeholder="Auto-filled from map search or pin" />
+            </div>
+            <div>
+              <label>Address details (manual)</label>
+              <textarea id="addrManual" class="note-textarea" placeholder="Flat, Street, Area, Landmarks, City"></textarea>
+              <div class="hint">Required — order cannot be placed without manual address.</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="row">
+            <div>
+              <label>Payment Mode</label>
+              <select id="payMode" onchange="onModeChange()"></select>
+            </div>
+            <div>
+              <label>Account</label>
+              <select id="payAccount"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Transaction ID</label>
+              <input id="txId" type="text" placeholder="e.g. TRX12345" />
+            </div>
+            <div>
+              <label>How did you pay?</label>
+              <input id="paidHow" type="text" placeholder="e.g. JazzCash app" />
+            </div>
+          </div>
+          <div class="card" style="margin-top:12px">
+            <h3>Bill Summary</h3>
+            <div class="kpi">
+              <div class="box"><div class="hint">Printing total</div><div id="b_printTotal" style="font-weight:700;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Delivery fare</div><div id="b_fare" style="font-weight:700;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Grand total</div><div id="b_grand" style="font-weight:700;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">Pay now (30%)</div><div id="b_now" style="font-weight:700;font-size:18px">PKR 0</div></div>
+              <div class="box"><div class="hint">COD (70%)</div><div id="b_cod" style="font-weight:700;font-size:18px">PKR 0</div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+            <button class="btn" onclick="goStep(3)">← Back</button>
+            <button class="btn primary" onclick="goStep(5)">Next: Review →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="card" id="step5" style="display:none">
+      <h2>Step 5 — Review & Place Order</h2>
+      <div id="review"></div>
+      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:10px" class="actions-stack">
+        <button class="btn" id="btnBackReview" onclick="goStep(4)">← Back</button>
+        <button class="btn ok" onclick="placeOrder()" id="btnPlace">Place Order</button>
+      </div>
+    </div>
+
+    <!-- TUTORIAL (separate tab/card) -->
+    <div class="card" id="tutorialCard" style="display:none">
+      <h2>Tutorial — How to Place an Order</h2>
+
+      <div class="tut-switch">
+        <input type="radio" name="tutLang" id="langEN" checked>
+        <label for="langEN" class="tut-chip">English</label>
+        <input type="radio" name="tutLang" id="langUR">
+        <label for="langUR" class="tut-chip">اردو</label>
+      </div>
+
+      <div class="tut-wrap">
+        <!-- ENGLISH -->
+        <div class="tut-en">
+          <div class="banner">Smart PhotoCopy — How to Place an Order</div>
+          <p class="muted">This guide explains every step to place a print order. Keep your PDFs and payment details handy.</p>
+
+          <h3>What you need</h3>
+          <ul class="tut-list">
+            <li>Your PDF files (we currently accept PDF only)</li>
+            <li>Your name, WhatsApp number, and email</li>
+            <li>A delivery address (you’ll pick it on a map and also type the details)</li>
+            <li>Payment details (how you paid and a transaction ID)</li>
+          </ul>
+
+          <h3>Step 1 — Your Details</h3>
+          <ol class="tut-list">
+            <li>Enter your Full Name.</li>
+            <li>Enter your WhatsApp Number. Any Pakistan format works: 03xxxxxxxxx, 92xxxxxxxxxx, or +92xxxxxxxxxx (we’ll normalize it).</li>
+            <li>Enter a valid Email (we’ll send your order copy here).</li>
+            <li>Click <em>“Continue to Files →”</em>.</li>
+          </ol>
+          <div class="banner">✅ All three fields (Name, WhatsApp, Email) are required to move forward.</div>
+
+          <h3>Step 2 — Upload Your PDF Files</h3>
+          <ol class="tut-list">
+            <li>Click the file picker and select one or more PDF files.</li>
+            <li>We’ll show page counts for each file.</li>
+            <li>Click “Upload” next to each file (or “Upload All”).</li>
+            <li>If you add the wrong file, use “Remove” (or “Remove All”).</li>
+            <li>When all files show “Uploaded”, click “Next: Printing →”.</li>
+          </ol>
+          <div class="banner">ℹ️ You must upload the files before placing the order.</div>
+
+          <h3>Step 3 — Choose Printing Options (Per File)</h3>
+          <p>For each uploaded PDF, choose:</p>
+          <ul class="tut-list">
+            <li>Size (e.g., A4, Legal, A3)</li>
+            <li>Paper Weight (e.g., 70gsm, 80gsm, etc.)</li>
+            <li>Style (e.g., Simplex/Single-Sided or Duplex/Back-to-Back)</li>
+          </ul>
+          <p>We’ll automatically calculate:</p>
+          <ul class="tut-list">
+            <li>Rate per page</li>
+            <li>Effective pages (duplex halves page count)</li>
+            <li>Amount for that file</li>
+          </ul>
+          <p>Add any extra notes (e.g., “Print in grayscale”, “Staple top-left”) in the text box.</p>
+          <p><strong>When done, click “Next: Address & Payment →”.</strong></p>
+
+          <h3>Step 4 — Address & Payment</h3>
+          <p><strong>Pick Your Delivery Location</strong></p>
+          <ul class="tut-list">
+            <li>Search by street/area/city and select a result, or</li>
+            <li>Click “Use my location”, or</li>
+            <li>Drop a pin on the map by clicking on your location</li>
+          </ul>
+          <p>Then fill:</p>
+          <ul class="tut-list">
+            <li>Selected location (auto-filled — you can edit it)</li>
+            <li>Address details (manual) — <strong>required</strong> (Flat/Street/Area/Landmarks/City)</li>
+          </ul>
+          <div class="banner">🚚 Delivery fare is estimated automatically from our origin to your location.</div>
+
+          <p><strong>Payment</strong></p>
+          <ul class="tut-list">
+            <li>Choose Payment Mode (e.g., bank, wallet, etc.).</li>
+            <li>Choose Account (we’ll show accounts for the selected mode).</li>
+            <li>Enter Transaction ID and How you paid (e.g., “JazzCash app”).</li>
+          </ul>
+          <p>You’ll see a Bill Summary: Printing total, Delivery fare, Grand total, Pay now (30%), and COD (70%).</p>
+          <p><strong>Click “Next: Review →”.</strong></p>
+
+          <h3>Step 5 — Review & Place Order</h3>
+          <ol class="tut-list">
+            <li>Check your Order Code, customer details, files & options, delivery, payment, and totals.</li>
+            <li>If all looks good, click <strong>“Place Order”</strong>.</li>
+            <li>You’ll see a confirmation message with your Order Code, and you’ll receive a copy by email. Our team will contact you shortly.</li>
+          </ol>
+
+          <h3>Important Notes & Tips</h3>
+          <ul class="tut-list">
+            <li>File type: PDF only (for perfect layout).</li>
+            <li>Duplex vs Single-Sided: Duplex reduces effective pages (cost).</li>
+            <li>Multiple files: Set options per file.</li>
+            <li>Delivery estimate: Calculated from our origin to your pin; ensure your pin is accurate.</li>
+            <li>Partial payment: 30% now and 70% Cash on Delivery (COD).</li>
+            <li>Transaction ID: Enter exact ID for quick verification.</li>
+            <li>Contact: Phone/WhatsApp +92 318 1530761, Email: studyappscontent@gmail.com.</li>
+            <li>Service area: Rawalpindi/Islamabad & nearby (fare varies by distance).</li>
+          </ul>
+
+          <h3>Troubleshooting</h3>
+          <p><strong>Can’t continue?</strong> Make sure required fields are filled (Name, WhatsApp, Email; Uploaded PDFs; Printing options; Address manual text; Payment mode/account; Transaction ID; “How you paid”).</p>
+          <p><strong>Files not uploading?</strong> Ensure they are PDF files and try again.</p>
+          <p><strong>Location issues?</strong> Use the Search box, drop a pin, or try “Use my location” (allow location access).</p>
+          <p><strong>Didn’t receive email?</strong> Check spam/junk, or contact us and share your Order Code.</p>
+
+          <h3>Privacy & Safety</h3>
+          <ul class="tut-list">
+            <li>Your files are used only to fulfill your order.</li>
+            <li>We never share your documents or personal details with third parties.</li>
+          </ul>
+
+          <h3>Need help?</h3>
+          <p>Call/WhatsApp: +92 318 1530761<br/>Email: studyappscontent@gmail.com</p>
+        </div>
+
+        <!-- URDU -->
+        <div class="tut-ur rtl">
+          <div class="banner">اسمارٹ فوٹو کاپی — آرڈر کیسے دیں</div>
+          <p class="muted">یہ رہنمائی آپ کو آرڈر دینے کے تمام مراحل سمجھاتی ہے۔ اپنی پی ڈی ایف فائلیں اور ادائیگی کی تفصیل تیار رکھیں۔</p>
+
+          <h3>آپ کو کن چیزوں کی ضرورت ہے</h3>
+          <ul class="tut-list">
+            <li>آپ کی پی ڈی ایف فائلیں (فی الحال صرف PDF قبول ہے)</li>
+            <li>آپ کا نام، واٹس ایپ نمبر، اور ای میل</li>
+            <li>ڈلیوری ایڈریس (نقشے پر پن لگائیں اور تفصیل بھی لکھیں)</li>
+            <li>ادائیگی کی تفصیل (کس طرح ادائیگی کی اور ٹرانزیکشن آئی ڈی)</li>
+          </ul>
+
+          <h3>مرحلہ 1 — آپ کی تفصیلات</h3>
+          <ol class="tut-list">
+            <li>اپنا پورا نام لکھیں۔</li>
+            <li>اپنا واٹس ایپ نمبر درج کریں۔ پاکستان کی کسی بھی فارمیٹ میں چلے گا: 03xxxxxxxxx، 92xxxxxxxxxx، یا +92xxxxxxxxxx (ہم نارملائز کریں گے)۔</li>
+            <li>درست ای میل لکھیں (آرڈر کی کاپی اسی ای میل پر آئے گی)۔</li>
+            <li>“Continue to Files →” پر کلک کریں۔</li>
+          </ol>
+          <div class="banner">✅ اگلے مرحلے پر جانے کے لیے نام، واٹس ایپ، اور ای میل— تینوں لازمی ہیں۔</div>
+
+          <h3>مرحلہ 2 — اپنی پی ڈی ایف فائلیں اپ لوڈ کریں</h3>
+          <ol class="tut-list">
+            <li>فائل پِکر پر کلک کریں اور ایک یا ایک سے زیادہ پی ڈی ایف فائلیں منتخب کریں۔</li>
+            <li>ہر فائل کے صفحات کی تعداد دکھائی جائے گی۔</li>
+            <li>ہر فائل کے سامنے “Upload” پر کلک کریں (یا “Upload All”)۔</li>
+            <li>اگر غلط فائل شامل ہو گئی ہے تو “Remove” (یا “Remove All”) استعمال کریں۔</li>
+            <li>جب تمام فائلوں کے سامنے “Uploaded” آ جائے تو “Next: Printing →” پر کلک کریں۔</li>
+          </ol>
+          <div class="banner">ℹ️ آرڈر دینے سے پہلے فائلیں اپ لوڈ کرنا ضروری ہے۔</div>
+
+          <h3>مرحلہ 3 — ہر فائل کے لیے پرنٹنگ آپشنز منتخب کریں</h3>
+          <p>ہر اپ لوڈڈ پی ڈی ایف کے لیے منتخب کریں:</p>
+          <ul class="tut-list">
+            <li>سائز (مثلاً A4، Legal، A3)</li>
+            <li>پیپر ویٹ (مثلاً 70gsm، 80gsm وغیرہ)</li>
+            <li>اسٹائل (سِمپلکس/سنگل سائیڈڈ یا ڈوپلکس/بیک ٹو بیک)</li>
+          </ul>
+          <p>ہم خودکار طور پر حساب لگائیں گے:</p>
+          <ul class="tut-list">
+            <li>ریٹ فی پیج</li>
+            <li>موثر صفحات (ڈوپلکس میں صفحات آدھے شمار ہوتے ہیں)</li>
+            <li>اسی فائل کی رقم</li>
+          </ul>
+          <p>اگر کوئی ہدایات دینی ہوں (جیسے “گری اسکیل میں پرنٹ کریں”، “اوپر بائیں اسٹیپل کریں”) تو نوٹس باکس میں لکھیں۔</p>
+          <p><strong>جب مکمل ہو جائے تو “Next: Address & Payment →” پر کلک کریں۔</strong></p>
+
+          <h3>مرحلہ 4 — پتہ اور ادائیگی</h3>
+          <p><strong>اپنی ڈلیوری لوکیشن منتخب کریں</strong></p>
+          <ul class="tut-list">
+            <li>گلی/علاقہ/شہر تلاش کر کے رزلٹ منتخب کریں، یا</li>
+            <li>“Use my location” پر کلک کریں، یا</li>
+            <li>نقشے پر اپنی جگہ پر کلک کر کے پن ڈراپ کریں</li>
+          </ul>
+          <p>پھر یہ فیلڈز بھر دیں:</p>
+          <ul class="tut-list">
+            <li>منتخب شدہ لوکیشن (آٹو فل — آپ ایڈٹ کر سکتے ہیں)</li>
+            <li>ایڈریس کی تفصیل — <strong>لازمی</strong> (فلیٹ/گلی/علاقہ/نشانیاں/شہر)</li>
+          </ul>
+          <div class="banner">🚚 ڈلیوری کرایہ ہمارے مقام سے آپ کی لوکیشن تک فاصلے کے حساب سے خود بخود اندازاً دکھایا جاتا ہے۔</div>
+
+          <p><strong>ادائیگی</strong></p>
+          <ul class="tut-list">
+            <li>پیمنٹ موڈ منتخب کریں (مثلاً بینک، والیٹ وغیرہ)۔</li>
+            <li>اکاؤنٹ منتخب کریں (منتخب موڈ کے اکاؤنٹس دکھائے جائیں گے)۔</li>
+            <li>ٹرانزیکشن آئی ڈی اور “کس طرح ادائیگی کی” (مثلاً “JazzCash app”) درج کریں۔</li>
+          </ul>
+          <p>آپ کو بل سمری نظر آئے گی: پرنٹنگ ٹوٹل، ڈلیوری کرایہ، گرینڈ ٹوٹل، ابھی ادائیگی (30%) اور کیش آن ڈلیوری (70%)۔</p>
+          <p><strong>“Next: Review →” پر کلک کریں۔</strong></p>
+
+          <h3>مرحلہ 5 — جائزہ لیں اور آرڈر پلیس کریں</h3>
+          <ol class="tut-list">
+            <li>اپنا آرڈر کوڈ، کسٹمر تفصیلات، فائلیں و آپشنز، ڈلیوری، ادائیگی، اور ٹوٹلز چیک کریں۔</li>
+            <li>اگر سب درست ہے تو <strong>“Place Order”</strong> پر کلک کریں۔</li>
+            <li>تصدیقی پیغام کے ساتھ آپ کو آرڈر کوڈ ملے گا اور ایک کاپی ای میل پر بھی موصول ہوگی۔ ہماری ٹیم جلد آپ سے رابطہ کرے گی۔</li>
+          </ol>
+
+          <h3>اہم نوٹس اور ٹپس</h3>
+          <ul class="tut-list">
+            <li>فائل ٹائپ: صرف PDF (بہتر لے آؤٹ کے لیے)۔</li>
+            <li>ڈوپلکس بمقابلہ سنگل سائیڈڈ: ڈوپلکس میں مؤثر صفحات کم ہو جاتے ہیں، اس لیے قیمت بھی کم ہوتی ہے۔</li>
+            <li>متعدد فائلیں: ہر فائل کے لیے الگ آپشنز منتخب کریں (سائز، ویٹ، اسٹائل)۔</li>
+            <li>ڈلیوری تخمینہ: ہمارے مقام سے آپ کے پن تک — درست کرایہ کے لیے پن درست جگہ لگائیں۔</li>
+            <li>جزوی ادائیگی: 30% ابھی اور 70% کیش آن ڈلیوری (COD)۔</li>
+            <li>ٹرانزیکشن آئی ڈی: ایڈوانس بھیجنے کے بعد درست آئی ڈی درج کریں تاکہ جلدی تصدیق ہو سکے۔</li>
+            <li>رابطہ: فون/واٹس ایپ +92 318 1530761، ای میل: studyappscontent@gmail.com</li>
+            <li>سروس ایریا: راولپنڈی/اسلام آباد اور آس پاس کے علاقوں میں ڈلیوری (فاصلہ کے مطابق کرایہ)۔</li>
+          </ul>
+
+          <h3>ٹربل شوٹنگ</h3>
+          <p><strong>اگلے مرحلے پر نہیں جا پا رہے؟</strong> یقینی بنائیں کہ لازمی فیلڈز بھری ہوئی ہیں (نام، واٹس ایپ، ای میل؛ اپ لوڈڈ پی ڈی ایف؛ پرنٹنگ آپشنز؛ ایڈریس کی تفصیل؛ پیمنٹ موڈ/اکاؤنٹ؛ ٹرانزیکشن آئی ڈی؛ “کس طرح ادائیگی کی”)۔</p>
+          <p><strong>فائلیں اپ لوڈ نہیں ہو رہیں؟</strong> یقینی بنائیں کہ فائلیں PDF ہیں اور دوبارہ کوشش کریں۔</p>
+          <p><strong>لوکیشن کے مسائل؟</strong> سرچ باکس استعمال کریں، نقشے پر پن چھوڑیں، یا “Use my location” آزمائیں (لوکیشن ایکسیس کی اجازت دیں)۔</p>
+          <p><strong>ای میل موصول نہیں ہوئی؟</strong> سپام/جنک فولڈر چیک کریں، یا ہم سے رابطہ کریں اور آرڈر کوڈ شیئر کریں۔</p>
+
+          <h3>پرائیویسی اور حفاظت</h3>
+          <ul class="tut-list">
+            <li>آپ کی فائلیں صرف آرڈر مکمل کرنے کے لیے استعمال ہوتی ہیں۔</li>
+            <li>ہم آپ کی دستاویزات یا ذاتی معلومات کسی تیسرے فریق سے شیئر نہیں کرتے۔</li>
+          </ul>
+
+          <h3>مدد درکار ہے؟</h3>
+          <p>کال/واٹس ایپ: 923181530761<br/>ای میل: studyappscontent@gmail.com</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="card" id="contactCard" style="display:none">
+      <h2>Contact</h2>
+      <div class="row">
+        <div>
+          <div class="hint">Phone</div>
+          <div style="font-weight:700;font-size:18px">
+            <a id="cPhone" href="tel:+923181530761">+923181530761</a>
+          </div>
+        </div>
+        <div>
+          <div class="hint">Email</div>
+          <div style="font-weight:700;font-size:18px">
+            <a id="cEmail" href="mailto:studyappscontent@gmail.com">studyappscontent@gmail.com</a>
+          </div>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:10px">
+        We're here to help. Reach out on phone or email anytime.
+      </div>
+    </div>
+  </main>
+
+<script>
+  // ======= CONFIG: Paste your Web App URL here =======
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzbpyCxRS1JCEuEWQGuX1b9Rnmg92tdiMyvAb0M4cYeSepASpLvmHy-f2UG5R5RrhK-DA/exec';
+  // ================================================
+
+  // Simple JSON POST without preflight (use Content-Type text/plain)
+  async function api(action, payload){
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, payload })
+    });
+    let data = {};
+    try { data = await res.json(); } catch(e){ data = { ok:false, error:'Invalid JSON response' }; }
+    return data;
+  }
+
+  const state = {
+    brand: {name:'Smart PhotoCopy'},
+    orderCode: null,
+    priceRows: [], weights: [], sizes: [], styles: [],
+    payments: { modes: [], accountsByMode:{} },
+    files: [],
+    totals: { printing:0, fare:0, grand:0, now:0, cod:0, minAdj:0 }, // added minAdj
+    delivery: {
+      origin:{lat:33.5987, lng:73.0519, label:'Liaquat Bagh, Murree Road Rawalpindi'},
+      lat:null, lng:null, addrText:'', addrManual:'', distanceKm:0, fare:0
+    },
+    contact: { phone:'+923181530761', email:'studyappscontent@gmail.com' },
+    currency: 'PKR',
+    timezone: 'Asia/Karachi',
+    currentStep: 1,
+    locked: false,
+    minOrderAck: false // ask user to acknowledge once before moving past step 4
+  };
+
+  function showMsg(text, type='info'){
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'banner' + (type==='error'?' error':'');
+    el.style.display = 'block';
+    setTimeout(()=>{el.style.display='none'}, 6000);
+  }
+
+  function genRandomOrderCode(){
+    const rnd = (len)=>Array.from(crypto.getRandomValues(new Uint32Array(len))).map(n=>String(n%10)).join('');
+    return 'SPC-' + rnd(8) + '-' + rnd(5);
+  }
+
+  function lockUI(){
+  state.locked = true;
+  document.querySelectorAll('button, input, select, textarea').forEach(el=>{
+    if (el.closest('#contactCard')) return;
+    el.disabled = true; el.setAttribute('tabindex','-1');
+  });
+  document.querySelectorAll('.chip').forEach(el=>{
+    if (el.id === 'sContact') return;
+    if (el.dataset.nolock === 'true') return; // keep Tutorial chip active after lock
+    el.classList.add('disabled');
+  });
+}
+
+
+  function showOnly(idToShow){
+    const ids = ['step1','step2','step3','step4','step5','contactCard','tutorialCard']; // added tutorialCard
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = (id===idToShow)?'block':'none'; });
+  }
+
+  function goStep(n){
+    if (state.locked && n!=='contact') return;
+    const back = typeof n==='number' ? (n < state.currentStep) : false;
+
+    if (n === 'contact'){
+      showOnly('contactCard');
+      for (let i=1;i<=5;i++){ document.getElementById('s'+i).classList.remove('active'); }
+      document.getElementById('sContact').classList.add('active');
+      return;
+    }
+
+    if (!back){
+      if (n>1){
+        const name = document.getElementById('name').value.trim();
+        const whatsapp = normalizePak(document.getElementById('whatsapp').value.trim());
+        const email = document.getElementById('email').value.trim();
+        if (!name || !whatsapp || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+          showMsg('Please enter your Name, WhatsApp and a valid Email first.', 'error');
+          return;
+        }
+      }
+      if (n>2){
+        if (!state.files.length){ showMsg('Please select at least one PDF file.', 'error'); return; }
+      }
+      if (n>3){
+        for(const f of state.files){
+          const opt = f.opts || {};
+          if(!opt.weight||!opt.size||!opt.style){ showMsg(`Select printing options for ${f.name}.`, 'error'); return; }
+        }
+      }
+      if (n>4){
+        const manual = document.getElementById('addrManual').value.trim();
+        if (!manual){ showMsg('Please enter your address details (manual).', 'error'); return; }
+        if (state.delivery.lat==null || state.delivery.lng==null){ showMsg('Please select your delivery location on the map.', 'error'); return; }
+        const mode = document.getElementById('payMode').value;
+        const acc  = document.getElementById('payAccount').value;
+        if (!mode || !acc){ showMsg('Select payment mode and account.', 'error'); return; }
+      }
+    }
+
+    // Ensure printing options are loaded before entering Step 3 (mobile safety)
+    if (n === 3 && (!state.sizes.length || !state.weights.length || !state.styles.length)){
+      showMsg('Printing options are loading. Please wait a moment and try again.');
+      return;
+    }
+
+    // Enforce 500 minimum: when moving past Step 4, show adjustment & block once
+    if (!back && n > 4){
+      const base = (state.totals.printing||0) + (state.totals.fare||0);
+      if (base < 500 && !state.minOrderAck){
+        updateBillCards(); // ensure banner/values visible
+        const adj = 500 - base;
+        showMsg(`Minimum order is PKR 500. We added ${formatPKR(adj)} to reach the minimum. Please review the Bill Summary, then tap Next again.`, 'error');
+        state.minOrderAck = true; // allow next attempt
+        return;
+      }
+    }
+
+    showOnly('step'+n);
+    for (let i=1;i<=5;i++){
+      document.getElementById('step'+i).style.display = (i===n)?'block':'none';
+      document.getElementById('s'+i).classList.toggle('active', i===n);
+    }
+    document.getElementById('sContact').classList.remove('active');
+document.getElementById('sTutorial')?.classList.remove('active'); // <-- add this
+
+
+    state.currentStep = n;
+    if(n===3){ renderPrintingUI(); recalcAll(); }
+    if(n===4){ updateBillCards(); initMapOnce(); }
+    if(n===5){ renderReview(); }
+  }
+
+  function wireStepper(){
+    for (let i=1;i<=5;i++){ document.getElementById('s'+i).addEventListener('click', ()=> goStep(i)); }
+    document.getElementById('sContact').addEventListener('click', ()=> goStep('contact'));
+  }
+
+  async function bootstrap(){
+    state.orderCode = genRandomOrderCode();
+    try {
+      const d = await api('bootstrap', {});
+      if (!d.ok) throw new Error(d.error || 'Bootstrap failed');
+
+      state.brand = d.brand||state.brand;
+      state.currency = d.currency||state.currency;
+      state.timezone=d.timezone||state.timezone;
+      state.priceRows = (d.price && d.price.rows)||[];
+      state.weights=(d.price && d.price.weights)||[];
+      state.sizes=(d.price && d.price.sizes)||[];
+      state.styles=(d.price && d.price.styles)||[];
+      state.payments = d.payments||state.payments;
+
+      // SAFE merge so blanks from backend don't wipe defaults
+      if (d.contact){
+        state.contact = { ...state.contact, ...d.contact };
+      }
+
+      // Fallbacks if backend sent blanks/missing
+      const p = document.getElementById('cPhone');
+      const e = document.getElementById('cEmail');
+      const phone = state.contact && state.contact.phone ? state.contact.phone : '+923181530761';
+      const email = state.contact && state.contact.email ? state.contact.email : 'studyappscontent@gmail.com';
+      if (p){ p.textContent = phone; p.href = 'tel:'+phone; }
+      if (e){ e.textContent = email; e.href = 'mailto:'+email; }
+
+      fillPaymentModes();
+    } catch (err) {
+      showMsg('Bootstrap error: '+err.message, 'error');
+    }
+  }
+
+  function normalizePak(n){
+    n = (n||'').replace(/[^0-9+]/g,'');
+    if(n.startsWith('+92')) return n;
+    if(n.startsWith('92')) return '+'+n;
+    if(n.startsWith('0')) return '+92'+n.slice(1);
+    if(/^3\d{9}$/.test(n)) return '+92'+n;
+    return n;
+  }
+
+  // === Files
+  const pdfInputEl = document.getElementById('pdfInput');
+  pdfInputEl.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files||[]);
+    for (const file of files){ if (file.type!=='application/pdf') continue; await addFile(file); }
+    e.target.value = '';
+    refreshFileButtons();
+  });
+
+  function uid(){ return 'f_'+Math.random().toString(36).slice(2,9); }
+
+  async function addFile(file){
+    const id = uid();
+    const pages = await countPdfPages(file).catch(()=>0);
+    const rec = { id, file, name:file.name, pages, uploaded:false, driveFileId:null, driveUrl:null, progress:0, opts:{size:'',weight:'',style:''} };
+    state.files.push(rec);
+    renderFileRow(rec);
+  }
+
+  function renderFileRow(rec){
+    const tbody = document.getElementById('filesBody');
+    const tr = document.createElement('tr'); tr.id = 'row_'+rec.id;
+    tr.innerHTML = `
+      <td>${escapeHtml(rec.name)}</td>
+      <td><span id="pg_${rec.id}">${rec.pages||'…'}</span></td>
+      <td><span id="st_${rec.id}">Selected</span></td>
+      <td><div class="progress"><i id="pr_${rec.id}" style="width:0%"></i></div></td>
+      <td>
+        <button class="btn" id="up_${rec.id}" onclick="uploadOne('${rec.id}')">Upload</button>
+        <button class="btn warn" id="rm_${rec.id}" onclick="removeOne('${rec.id}')">Remove</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+
+  function refreshFileButtons(){
+    const has = state.files.length>0;
+    document.getElementById('btnUploadAll').disabled = !has || state.files.every(f=>f.uploaded);
+    document.getElementById('btnRemoveAll').disabled = !has;
+  }
+
+  async function countPdfPages(file){
+    const arr = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:new Uint8Array(arr)}).promise;
+    return pdf.numPages;
+  }
+
+  async function uploadOne(id){
+    if (state.locked) return;
+    const f = state.files.find(x=>x.id===id); if(!f) return;
+    if (f.uploaded){ showMsg(`${f.name} already uploaded.`); return; }
+    if (!state.orderCode){ showMsg('Preparing order… please retry.'); return; }
+
+    const reader = new FileReader();
+    reader.onprogress = (ev)=>{ if(ev.lengthComputable){ const p = Math.round(ev.loaded/ev.total*80); setProgress(id,p);} };
+    reader.onload = async ()=>{
+      const base64 = reader.result; // data URL
+      setStatus(id,'Uploading…');
+      try{
+        const res = await api('upload', {fileName:f.name, base64, mimeType: f.file? f.file.type:'application/pdf', orderCode: state.orderCode});
+        if(!res.ok) throw new Error(res.error || 'Upload failed');
+        f.uploaded = true; f.driveFileId = res.fileId; f.driveUrl = res.url;
+        setProgress(id,100); setStatus(id,'Uploaded'); refreshFileButtons();
+      }catch(err){
+        setStatus(id,'Error'); showMsg('Upload failed: '+err.message,'error'); setProgress(id,0);
+      }
+    };
+    reader.readAsDataURL(f.file);
+  }
+
+  function uploadAll(){ if(state.locked) return; for(const f of state.files){ if(!f.uploaded) uploadOne(f.id); } }
+  function removeAll(){ if(state.locked) return; const ids = state.files.map(f=>f.id); ids.forEach(removeOne); pdfInputEl.value=''; }
+
+  async function removeOne(id){
+    if (state.locked) return;
+    const idx = state.files.findIndex(x=>x.id===id); if(idx<0) return;
+    const f = state.files[idx];
+    const cleanup = ()=>{
+      const tr = document.getElementById('row_'+id); if(tr) tr.remove();
+      state.files.splice(idx,1); refreshFileButtons(); pdfInputEl.value='';
+      if (state.currentStep===3) { renderPrintingUI(); recalcAll(); }
+    };
+    if (f.uploaded && f.driveFileId){
+      setStatus(id,'Removing…');
+      try{
+        const res = await api('delete', { fileId: f.driveFileId });
+        if(!res.ok) throw new Error(res.error || 'Delete failed');
+        cleanup(); showMsg(`${f.name} removed.`);
+      }catch(e){
+        setStatus(id,'Error'); showMsg('Remove failed: '+e.message,'error');
+      }
+    } else { cleanup(); }
+  }
+
+  function setProgress(id,percent){ const el = document.getElementById('pr_'+id); if(el) el.style.width = percent+'%'; }
+  function setStatus(id,text){ const el = document.getElementById('st_'+id); if(el) el.textContent = text; }
+
+  // === Printing (per-file)
+  const _key = s => String(s || '').trim().toLowerCase().replace(/\s|-/g, '');
+  function isDuplex(style){ const t = _key(style); return t==='backtoback'||t==='duplex'||t==='twosided'||t==='2sided'||t==='double'; }
+  function findPrice(weight,size,style){
+    const kw=_key(weight), ks=_key(size), kt=_key(style);
+    const row = (state.priceRows || []).find(r =>
+      _key(r.PaperWeight)===kw && _key(r.PaperSize)===ks && _key(r.PaperStyle)===kt
+    );
+    return row ? Number(row.Price) : NaN;
+  }
+
+  function renderPrintingUI(){
+    const host = document.getElementById('printBody'); host.innerHTML='';
+    const sel = (id, options, value) => {
+      const opts = ['<option value="">Select…</option>'].concat(options.map(v=>`<option ${v===value?'selected':''} value="${escapeHtml(v)}">${escapeHtml(v)}</option>`));
+      return `<select id="${id}">${opts.join('')}</select>`;
+    };
+
+    for (const f of state.files){
+      const tr = document.createElement('tr'); tr.id = 'p_'+f.id;
+      tr.innerHTML = `
+        <td>${escapeHtml(f.name)}</td>
+        <td>${f.pages}</td>
+        <td>${sel('sz_'+f.id, state.sizes, f.opts.size)}</td>
+        <td>${sel('wt_'+f.id, state.weights, f.opts.weight)}</td>
+        <td>${sel('st_'+f.id, state.styles, f.opts.style)}</td>
+        <td id="rate_${f.id}" class="muted">—</td>
+        <td id="eff_${f.id}" class="muted">—</td>
+        <td id="amt_${f.id}" style="font-weight:700">—</td>
+      `;
+      host.appendChild(tr);
+
+      const szEl = tr.querySelector('#sz_'+f.id);
+      const wtEl = tr.querySelector('#wt_'+f.id);
+      const stEl = tr.querySelector('#st_'+f.id);
+
+      const assign = ()=>{
+        f.opts.size = szEl.value;
+        f.opts.weight = wtEl.value;
+        f.opts.style = stEl.value;
+        recalcOne(f);
+        recalcAll();
+      };
+
+      [szEl, wtEl, stEl].forEach(el=>{
+        el.addEventListener('change', assign);
+        el.addEventListener('input', assign);
+      });
+
+      assign();
+    }
+  }
+
+  function recalcOne(f){
+    const rate = findPrice(f.opts.weight, f.opts.size, f.opts.style);
+    const pages = Number(f.pages)||0;
+    if (!isFinite(rate) || !f.opts.weight || !f.opts.size || !f.opts.style){
+      f.calc = null;
+      setCell(f.id,'rate','—'); setCell(f.id,'eff','—'); setCell(f.id,'amt','—', true);
+      return;
+    }
+    const eff = isDuplex(f.opts.style) ? Math.ceil(pages/2) : pages;
+    const sub = Math.round(eff * rate);
+    f.calc = { rate, effPages: eff, subtotal: sub };
+    setCell(f.id,'rate', formatPKR(rate));
+    setCell(f.id,'eff', eff);
+    setCell(f.id,'amt', formatPKR(sub), true);
+  }
+
+  function recalcAll(){
+    let total = 0;
+    for (const f of state.files){
+      if (f.calc && isFinite(f.calc.subtotal)) total += f.calc.subtotal;
+    }
+    state.totals.printing = Math.round(total);
+    document.getElementById('k_printTotal').textContent = formatPKR(state.totals.printing);
+    updateBillCards();
+  }
+
+  function setCell(id, key, val, bold){
+    const el = document.getElementById((key==='rate'?'rate_':key==='eff'?'eff_':'amt_')+id);
+    if (el){ el.textContent = val; if (bold) el.style.fontWeight='700'; }
+  }
+
+  // === Map & Delivery
+  let map, userMarker, originMarker;
+  function initMapOnce(){
+    if(map) return;
+    map = L.map('map').setView([state.delivery.origin.lat, state.delivery.origin.lng], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+    originMarker = L.marker([state.delivery.origin.lat, state.delivery.origin.lng]).addTo(map).bindPopup('Origin: '+state.delivery.origin.label);
+    map.on('click', e=>{ setUserLocation(e.latlng.lat, e.latlng.lng, 'Dropped on map'); });
+  }
+
+  async function searchLocation(){
+    const q = document.getElementById('searchAddr').value.trim(); if(!q){ showMsg('Enter a place to search.'); return; }
+    const url = 'https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(q);
+    try{
+      const res = await fetch(url, {headers:{'Accept':'application/json'}}); const data = await res.json(); if(!data.length){ showMsg('No results found.','error'); return; }
+      const {lat,lon,display_name} = data[0]; setUserLocation(parseFloat(lat), parseFloat(lon), display_name);
+    }catch(e){ showMsg('Search failed. Please try again.','error'); }
+  }
+
+  function useMyLocation(){
+    if(!navigator.geolocation){ showMsg('Geolocation not supported.','error'); return; }
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude,longitude} = pos.coords; setUserLocation(latitude, longitude, 'My current location');
+    }, err=>{ showMsg('Could not get location.','error'); });
+  }
+
+  function setUserLocation(lat,lng,label){
+    state.delivery.lat = lat; state.delivery.lng = lng; state.delivery.addrText = label || state.delivery.addrText;
+    const at = document.getElementById('addrText'); if (at) at.value = state.delivery.addrText;
+    if(userMarker){ userMarker.setLatLng([lat,lng]); } else { userMarker = L.marker([lat,lng]).addTo(map).bindPopup('Delivery location'); }
+    map.setView([lat,lng], 13);
+    computeFare();
+  }
+
+  function computeFare(){
+    const o = state.delivery.origin; const d = {lat:state.delivery.lat, lng:state.delivery.lng}; if(d.lat==null||d.lng==null) return;
+    const km = haversineKm(o.lat,o.lng,d.lat,d.lng);
+    state.delivery.distanceKm = km;
+    const fare = Math.round(km*50);
+    state.delivery.fare = fare; state.totals.fare=fare;
+    updateBillCards();
+  }
+
+  function haversineKm(lat1,lon1,lat2,lon2){
+    const toRad = d=>d*Math.PI/180; const R=6371;
+    const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+    const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    return R*c;
+  }
+
+  // === Payments
+  function fillPaymentModes(){
+    const pm = document.getElementById('payMode');
+    pm.innerHTML = '<option value="">Select…</option>' + (state.payments.modes||[]).map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+    onModeChange();
+  }
+  function onModeChange(){
+    const mode = document.getElementById('payMode').value; const accSel = document.getElementById('payAccount');
+    const list = (state.payments.accountsByMode||{})[mode]||[];
+    accSel.innerHTML = '<option value="">Select…</option>' + list.map(a=>`<option value="${escapeHtml(a.name+'|'+a.account)}">${escapeHtml(a.name)} — ${escapeHtml(a.account)}</option>`).join('');
+  }
+
+  function updateBillCards(){
+    const print = state.totals.printing||0;
+    const fare  = state.totals.fare||0;
+    const base  = print + fare;
+    const minAdj = base < 500 ? (500 - base) : 0;
+
+    state.totals.minAdj = minAdj;
+
+    const grand = base + minAdj;
+    const now = Math.round(grand * 0.30);
+    const cod = grand - now;
+
+    state.totals.grand = grand;
+    state.totals.now   = now;
+    state.totals.cod   = cod;
+
+    // reset ack if no longer needed
+    if (minAdj === 0) state.minOrderAck = false;
+
+    document.getElementById('b_printTotal').textContent = formatPKR(print);
+    document.getElementById('b_fare').textContent       = formatPKR(fare);
+    document.getElementById('b_grand').textContent      = formatPKR(grand);
+    document.getElementById('b_now').textContent        = formatPKR(now);
+    document.getElementById('b_cod').textContent        = formatPKR(cod);
+
+    // Show/hide a note inside Step 4 explaining the adjustment
+    let note = document.getElementById('minOrderNote');
+    if (!note){
+      note = document.createElement('div');
+      note.id = 'minOrderNote';
+      note.className = 'banner';
+      const kpi = document.querySelector('#step4 .kpi');
+      if (kpi) kpi.insertAdjacentElement('afterend', note);
+    }
+    if (minAdj > 0){
+      note.textContent = `Minimum order is PKR 500. An extra ${formatPKR(minAdj)} has been added to reach the minimum.`;
+      note.style.display = 'block';
+    } else {
+      note.style.display = 'none';
+    }
+  }
+
+  function formatPKR(n){ try { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(n||0);}catch(e){ return 'PKR '+(n||0);} }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+
+  // === Review & Submit
+  function renderReview(){
+    state.delivery.addrText = document.getElementById('addrText').value;
+    state.delivery.addrManual = document.getElementById('addrManual').value;
+
+    const filesList = state.files.map(f=>{
+      const part = f.calc ? ` — ${formatPKR(f.calc.subtotal)}` : '';
+      const opt = f.opts||{};
+      return `${escapeHtml(f.name)} — ${f.pages}p — ${escapeHtml(opt.size)}, ${escapeHtml(opt.weight)}, ${escapeHtml(opt.style)}${part}`;
+    }).join('<br/>');
+
+    const adjLine = state.totals.minAdj > 0 ? `<br/>Min-order adj: ${formatPKR(state.totals.minAdj)}` : '';
+
+    const html = `
+      <div class="card" style="margin-bottom:12px">
+        <strong>Order Code:</strong> <span class="mono">${escapeHtml(state.orderCode || 'reserving…')}</span>
+      </div>
+      <div class="row">
+        <div class="box" style="border:1px solid #eee;border-radius:12px;padding:12px;background:#fff">
+          <h3>Customer</h3>
+          <div>${escapeHtml(document.getElementById('name').value)}<br/>${escapeHtml(normalizePak(document.getElementById('whatsapp').value))}<br/>${escapeHtml(document.getElementById('email').value)}</div>
+          <h3 style="margin-top:12px">Files & Printing</h3>
+          <div class="mono">${filesList}</div>
+          <h3 style="margin-top:12px">Extra Note</h3>
+          <div>${escapeHtml(document.getElementById('extraNoteAll').value)}</div>
+        </div>
+        <div class="box" style="border:1px solid #eee;border-radius:12px;padding:12px;background:#fff">
+          <h3>Delivery</h3>
+          <div>${escapeHtml(state.delivery.addrText)}<br/>${escapeHtml(state.delivery.addrManual)}</div>
+          <h3 style="margin-top:12px">Payment</h3>
+          <div>Mode: ${escapeHtml(document.getElementById('payMode').value)}<br/>Account: ${escapeHtml(document.getElementById('payAccount').value)}<br/>Txn: ${escapeHtml(document.getElementById('txId').value)}<br/>How: ${escapeHtml(document.getElementById('paidHow').value)}</div>
+          <h3 style="margin-top:12px">Totals</h3>
+          <div>Printing: ${formatPKR(state.totals.printing)}<br/>Delivery: ${formatPKR(state.totals.fare)}${adjLine}<br/><b>Grand: ${formatPKR(state.totals.grand)}</b><br/>Pay now: ${formatPKR(state.totals.now)} | COD: ${formatPKR(state.totals.cod)}</div>
+        </div>
+      </div>`;
+    document.getElementById('review').innerHTML = html;
+  }
+
+  async function placeOrder(){
+    if (state.locked) return;
+
+    const name = document.getElementById('name').value.trim();
+    const whatsapp = normalizePak(document.getElementById('whatsapp').value.trim());
+    const email = document.getElementById('email').value.trim();
+    if (!name || !whatsapp || !/^\S+@\S+\.\S+$/.test(email)) { showMsg('Please complete your details.', 'error'); return; }
+    if (!state.files.length || state.files.some(f=>!f.uploaded)) { showMsg('Please upload all selected PDFs before placing the order.', 'error'); return; }
+
+    const mode = document.getElementById('payMode').value;
+    const acc = document.getElementById('payAccount').value;
+    const txId = document.getElementById('txId').value.trim();
+    const paidHow = document.getElementById('paidHow').value.trim();
+    if (!mode || !acc || !txId || !paidHow) { showMsg('Please provide payment mode, account, transaction ID and how you paid.', 'error'); return; }
+
+    if (state.delivery.lat==null||state.delivery.lng==null) { showMsg('Please select your delivery location on the map.', 'error'); return; }
+    const manual = document.getElementById('addrManual').value.trim();
+    if (!manual){ showMsg('Please enter your address details (manual).', 'error'); return; }
+
+    const files = state.files.map(f=>({
+      name: f.name, pages: f.pages, sizeBytes: f.file.size, driveFileId: f.driveFileId, driveUrl: f.driveUrl,
+      options: (f.opts||{})
+    }));
+    const order = {
+      customer: { name, whatsapp, email },
+      files,
+      printMode: 'separate',
+      priceRows: state.priceRows,
+      delivery: {
+        origin: state.delivery.origin,
+        lat: state.delivery.lat, lng: state.delivery.lng,
+        addressText: state.delivery.addrText,
+        addressManual: manual,
+        distanceKm: state.delivery.distanceKm,
+        fare: state.delivery.fare
+      },
+      payments: { mode, account: acc, transactionId: txId, paidHow },
+      totals: {
+        printingTotal: state.totals.printing,
+        fare: state.totals.fare,
+        minAdjustment: state.totals.minAdj,   // added
+        grandTotal: state.totals.grand,
+        advanceNow: state.totals.now,
+        codDue: state.totals.cod
+      },
+      notes: { global: document.getElementById('extraNoteAll').value },
+      meta: { orderCode: state.orderCode }
+    };
+
+    const btn = document.getElementById('btnPlace'); const backBtn = document.getElementById('btnBackReview');
+    btn.disabled = true; btn.textContent = 'Placing…'; backBtn.disabled = true;
+
+    try{
+      const res = await api('finalize', { order });
+      btn.textContent='Place Order';
+      if(res && res.ok){
+        showMsg(`Your order has been processed (Code: ${res.orderCode}). Please check your email for the order copy. Our team will contact you soon. Regards.`, 'info');
+        lockUI();
+        window.scrollTo({top:0,behavior:'smooth'});
+      } else {
+        btn.disabled=false; backBtn.disabled=false;
+        showMsg('Could not place order. '+(res && res.error ? res.error : ''), 'error');
+      }
+    }catch(err){
+      btn.disabled=false; backBtn.disabled=false; btn.textContent='Place Order';
+      showMsg('Error: '+err.message,'error');
+    }
+  }
+
+  // Stepper + Inputs
+  function initStepper(){ wireStepper(); }
+  document.getElementById('addrText').addEventListener('change', ()=>{ state.delivery.addrText = document.getElementById('addrText').value; });
+  document.getElementById('addrManual').addEventListener('change', ()=>{ state.delivery.addrManual = document.getElementById('addrManual').value; });
+
+  function formatPKR(n){ try { return new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(n||0);}catch(e){ return 'PKR '+(n||0);} }
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    initStepper();
+    bootstrap();
+    
+
+   // Fallback toggle for browsers without :has()
+    (function(){
+      const en = document.getElementById('langEN');
+      const ur = document.getElementById('langUR');
+      const enBox = document.querySelector('#tutorialCard .tut-en');
+      const urBox = document.querySelector('#tutorialCard .tut-ur');
+      if (!en || !ur || !enBox || !urBox) return;
+      function syncTut(){
+        // Only apply if :has() isn't working; but it's harmless either way.
+        enBox.style.display = en.checked ? 'block' : 'none';
+        urBox.style.display = ur.checked ? 'block' : 'none';
+      }
+      en.addEventListener('change', syncTut);
+      ur.addEventListener('change', syncTut);
+      // Ensure EN is visible on first open
+      syncTut();
+    })();
+  
+  });
+</script>
+</body>
+</html>
