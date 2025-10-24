@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartPhotoCopy — Admin (External)</title>
+  <style>
+    :root { --bg:#fff; --fg:#111; --muted:#666; --accent:#0b5; --danger:#c33; --card:#f7f7f7; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--fg); margin:0; }
+    .wrap { max-width: 1000px; margin: 24px auto 80px; padding: 0 16px; }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    .card { background: var(--card); border: 1px solid #e6e6e6; border-radius: 12px; padding: 16px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    select, button { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; background:#fff; }
+    button.primary { background:var(--accent); color:#fff; border-color: transparent; cursor:pointer; }
+    button.ghost { background:#fff; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .pill { display:inline-block; padding:4px 10px; border-radius: 999px; font-size: 12px; background:#eee; }
+    .pill.completed { background:#d5f5e3; color:#0a4730; }
+    .pill.process { background:#fff4d6; color:#7a5b00; }
+    .statusbar { margin: 12px 0; padding: 8px 12px; border-radius: 10px; background:#eef9ff; border:1px solid #cfefff; font-size: 14px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border: 1px solid #e8e8e8; padding: 8px; text-align:left; font-size: 14px; }
+    th { background:#fafafa; }
+    .section { margin-top:18px; }
+    .section h3 { margin: 0 0 8px; font-size: 16px; }
+    .muted { color: var(--muted); }
+    .right { margin-left:auto; }
+    .divider { height:1px; background:#eee; margin:16px 0; }
+    .sticky-footer { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #eee; padding:10px 16px; }
+    code { background: #f1f1f1; padding: 2px 6px; border-radius: 6px; }
+    a.btn { text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SmartPhotoCopy — Admin (Finish Order)</h1>
+
+    <div class="card">
+      <div class="row">
+        <label for="orderSelect" class="muted">Order</label>
+        <select id="orderSelect">
+          <option value="">— Select an order —</option>
+        </select>
+        <span id="orderCodePill" class="pill" style="display:none"></span>
+        <span id="statusPill" class="pill process" style="display:none"></span>
+        <button id="completeBtn" class="primary right" disabled>Mark as Complete</button>
+        <button id="pdfBtn" class="ghost" disabled>Download PDF</button>
+        <button id="emailBtn" class="ghost" disabled>Send Email</button>
+      </div>
+      <div id="statusBar" class="statusbar" style="display:none"></div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <h3>Sheet Row</h3>
+        <table id="rowTable"><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="card">
+        <h3>Order Details</h3>
+        <div class="muted" id="contactLine">Contact: +923181530761 · studyappscontent@gmail.com</div>
+        <div class="divider"></div>
+        <div id="jsonTables"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-footer muted">
+    Folder: <b>Smart PhotoCopy</b> (ID: <code>1NLRJ6ix8gPNC1yhhcUdO3DmG7FPayT5y</code>) ·
+    Sheet: <b>SmartOrders</b> (<code>1owRF-RicqwCyljCEkLG12qwmHvyvQqKwAtN9ZxdWdwo</code>)
+  </div>
+
+  <script>
+    // ======= CONFIG =======
+    const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzw3CpPV97cmEWXdEXyId5g-3wT1yGaSJeTiUJElDzaTxrYBJ9t7D8jRnUMpy0SMnje/exec";
+
+    // Generic API GET helper (uses simple GET to avoid CORS preflight)
+    async function api(action, params = {}){
+      const url = new URL(WEBAPP_URL);
+      url.searchParams.set("action", action);
+      for (const [k,v] of Object.entries(params)){
+        if (v !== undefined && v !== null) url.searchParams.set(k, v);
+      }
+      const res = await fetch(url.toString(), { method: "GET" });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error("Bad response: " + text.slice(0, 300));
+      }
+    }
+
+    // ======= UI helpers =======
+    const el = (id)=>document.getElementById(id);
+    const orderSelect = el('orderSelect');
+    const completeBtn = el('completeBtn');
+    const pdfBtn = el('pdfBtn');
+    const emailBtn = el('emailBtn');
+    const orderCodePill = el('orderCodePill');
+    const statusPill = el('statusPill');
+    const statusBar = el('statusBar');
+
+    function setStatus(msg) {
+      if (!msg) { statusBar.style.display='none'; statusBar.textContent=''; return; }
+      statusBar.style.display='block'; statusBar.textContent = msg;
+    }
+
+    function toTable(obj, orderHeaders) {
+      const tbody = document.createElement('tbody');
+      const keys = orderHeaders && orderHeaders.length ? orderHeaders : Object.keys(obj||{});
+      keys.forEach(k => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.textContent = k; tr.appendChild(th);
+        const td = document.createElement('td'); td.textContent = (obj && obj[k] !== undefined && obj[k] !== null) ? obj[k] : ''; tr.appendChild(td);
+        tbody.appendChild(tr);
+      });
+      return tbody;
+    }
+
+    function renderRowTable(row){
+      const rowTable = el('rowTable');
+      rowTable.innerHTML='';
+      const headers = ['OrderCode','Name','Email','Whatsapp','FileName','FileLink','FileDate','Status','Date'];
+      rowTable.appendChild(toTable(row, headers));
+    }
+
+    const rs = (v)=> (v === '' || v === null || v === undefined) ? '' : ('Rs ' + v);
+
+    function renderJson(json){
+      const container = el('jsonTables');
+      container.innerHTML='';
+
+      const addSection = (title, tableEl) => {
+        const wrap = document.createElement('div');
+        const h = document.createElement('h3'); h.textContent = title; wrap.appendChild(h);
+        wrap.appendChild(tableEl);
+        container.appendChild(wrap);
+      };
+
+      // Customer
+      if (json.customer){
+        const t = document.createElement('table');
+        t.appendChild(toTable(json.customer));
+        addSection('Customer', t);
+      }
+      // Payments
+      if (json.payments){
+        const t = document.createElement('table');
+        t.appendChild(toTable(json.payments));
+        addSection('Payments', t);
+      }
+      // Meta
+      if (json.meta){
+        const t = document.createElement('table');
+        t.appendChild(toTable(json.meta));
+        addSection('Meta', t);
+      }
+      // Files (includes Copies)
+      if (Array.isArray(json.files)){
+        const t = document.createElement('table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>File</th><th>Pages</th><th>Size</th><th>Style</th><th>Weight</th><th>Rate</th><th>Eff. Pages</th><th>Copies</th><th>Subtotal</th></tr>';
+        t.appendChild(thead);
+        const tb = document.createElement('tbody');
+        json.files.forEach(f=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${f.name||''}</td>
+            <td>${f.pages||''}</td>
+            <td>${(f.options && f.options.size)||''}</td>
+            <td>${(f.options && f.options.style)||''}</td>
+            <td>${(f.options && f.options.weight)||''}</td>
+            <td>${rs((f.calc && f.calc.rate)??'')}</td>
+            <td>${(f.calc && f.calc.effPages)||''}</td>
+            <td>${(f.calc && f.calc.copies) ?? (f.options && f.options.copies) ?? ''}</td>
+            <td>${rs((f.calc && f.calc.subtotal)??'')}</td>`;
+          tb.appendChild(tr);
+        });
+        t.appendChild(tb);
+        addSection('Files', t);
+      }
+      // Totals
+      if (json.totals){
+        const t = document.createElement('table');
+        const tb = document.createElement('tbody');
+        const add = (k,v)=>{
+          const tr=document.createElement('tr'); 
+          const th=document.createElement('th'); th.textContent=k; 
+          const td=document.createElement('td'); 
+          const isNum = typeof v === 'number' || (!isNaN(Number(v)) && v !== '');
+          td.textContent = isNum ? rs(Number(v)) : v; 
+          tr.appendChild(th); tr.appendChild(td); tb.appendChild(tr);
+        };
+        add('printingTotal', Number(json.totals.printingTotal||0));
+        add('fare', Number(json.totals.fare||0));
+        add('advanceNow', Number(json.totals.advanceNow||0));
+        add('codDue', Number(json.totals.codDue||0));
+        add('grandTotal', Number(json.totals.grandTotal|| (Number(json.totals.printingTotal||0)+Number(json.totals.fare||0)) ));
+        t.appendChild(tb);
+        addSection('Totals', t);
+      }
+      // Delivery
+      if (json.delivery){
+        const t = document.createElement('table');
+        t.appendChild(toTable(json.delivery));
+        addSection('Delivery', t);
+      }
+      // Price Rows
+      if (Array.isArray(json.priceRows)){
+        const t = document.createElement('table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>PaperWeight</th><th>PaperSize</th><th>PaperStyle</th><th>Price</th></tr>';
+        t.appendChild(thead);
+        const tb = document.createElement('tbody');
+        json.priceRows.forEach(p=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.PaperWeight||''}</td>
+            <td>${p.PaperSize||''}</td>
+            <td>${p.PaperStyle||''}</td>
+            <td>${rs(p.Price??'')}</td>`;
+          tb.appendChild(tr);
+        });
+        t.appendChild(tb);
+        addSection('Price Rows', t);
+      }
+      // Notes
+      if (json.notes){
+        const t = document.createElement('table');
+        t.appendChild(toTable(json.notes));
+        addSection('Notes', t);
+      }
+    }
+
+    // ======= Actions =======
+    async function refreshOrders(){
+      setStatus('Loading orders…');
+      try{
+        const list = await api('list');
+        orderSelect.innerHTML = '<option value="">— Select an order —</option>';
+        (list||[]).forEach(o=>{
+          const opt = document.createElement('option');
+          opt.value = o.OrderCode;
+          opt.textContent = `${o.OrderCode} — ${o.Status||''}`;
+          orderSelect.appendChild(opt);
+        });
+        setStatus('');
+      }catch(err){
+        setStatus(err.message||String(err));
+      }
+    }
+
+    async function onSelectChange(){
+      const code = orderSelect.value;
+      if (!code){
+        el('rowTable').innerHTML='';
+        el('jsonTables').innerHTML='';
+        orderCodePill.style.display='none';
+        statusPill.style.display='none';
+        completeBtn.disabled = true;
+        pdfBtn.disabled = true;
+        emailBtn.disabled = true;
+        return;
+      }
+      setStatus('Loading order ' + code + ' …');
+      try{
+        const {row,json,completed} = await api('load', { code });
+        renderRowTable(row);
+        renderJson(json);
+        orderCodePill.textContent = row.OrderCode;
+        orderCodePill.style.display='inline-block';
+        statusPill.textContent = row.Status;
+        statusPill.className = 'pill ' + (String(row.Status).toLowerCase()==='completed' ? 'completed' : 'process');
+        statusPill.style.display='inline-block';
+        completeBtn.disabled = String(row.Status).toLowerCase() !== 'in process';
+        pdfBtn.disabled = false;
+        emailBtn.disabled = false; // allow re-send anytime
+        setStatus('');
+      }catch(err){
+        setStatus(err.message||String(err));
+      }
+    }
+
+    async function onComplete(){
+      const code = orderSelect.value; if (!code) return;
+      completeBtn.disabled = true;
+      setStatus('Completing order ' + code + ' …');
+      try{
+        const res = await api('complete', { code });
+        setStatus(res && res.message ? res.message : 'Completed.');
+        await onSelectChange();
+        await refreshOrders();
+      }catch(err){
+        completeBtn.disabled = false;
+        setStatus(err.message||String(err));
+      }
+    }
+
+    async function onPdf(){
+      const code = orderSelect.value; if (!code) return;
+      pdfBtn.disabled = true; setStatus('Generating PDF…');
+      try{
+        const res = await api('exportPdf', { code });
+        pdfBtn.disabled = false;
+        if (res && res.ok && res.link){
+          setStatus('PDF ready. Opening in a new tab…');
+          window.open(res.link, '_blank');
+        } else {
+          setStatus('Could not generate PDF.');
+        }
+      }catch(err){
+        pdfBtn.disabled = false; setStatus(err.message||String(err));
+      }
+    }
+
+    async function onEmail(){
+      const code = orderSelect.value; if (!code) return;
+      emailBtn.disabled = true; setStatus('Sending email…');
+      try{
+        const res = await api('email', { code });
+        emailBtn.disabled = false;
+        setStatus(res && res.message ? res.message : 'Email queued.');
+      }catch(err){
+        emailBtn.disabled = false; setStatus(err.message||String(err));
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      refreshOrders();
+      orderSelect.addEventListener('change', onSelectChange);
+      completeBtn.addEventListener('click', onComplete);
+      pdfBtn.addEventListener('click', onPdf);
+      emailBtn.addEventListener('click', onEmail);
+    });
+  </script>
+</body>
+</html>
